@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:proy_test/RegistrarUsuario.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const Usuarios());
@@ -29,6 +32,38 @@ class ListaUsuarios extends StatefulWidget {
 class _ListaUsuariosState extends State<ListaUsuarios> {
   final TextEditingController buscadorController = TextEditingController();
   String dropdownValue = 'Departamento';
+  List<dynamic> usuarios = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsuarios();
+  }
+
+  Future<void> fetchUsuarios() async {
+    final url = Uri.parse(
+        'http://localhost:3000/getUsers'); // Reemplaza con tu URL real
+
+    try {
+      final response = await http.get(url);
+
+      print("Código de respuesta: ${response.statusCode}");
+      print("Cuerpo de respuesta: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          usuarios =
+              data; // Asegúrate de que `usuarios` es una lista en tu clase
+        });
+      } else {
+        throw Exception("Error al cargar los usuarios: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Excepción atrapada: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,80 +99,6 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: TextField(
-                        controller: buscadorController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Buscar por nombre...',
-                          hintStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon:
-                              const Icon(Icons.search, color: Colors.white),
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.2),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onChanged: (String value) {},
-                      ),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      const Text(
-                        'Filtrar por:',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      DropdownButton<String>(
-                        dropdownColor: const Color(0xFF022044),
-                        value: dropdownValue,
-                        icon: const Icon(Icons.arrow_drop_down,
-                            color: Colors.white),
-                        iconSize: 24,
-                        elevation: 16,
-                        style: const TextStyle(color: Colors.white),
-                        underline: Container(
-                          height: 2,
-                          color: Colors.white,
-                        ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            dropdownValue = newValue!;
-                          });
-                        },
-                        items: <String>[
-                          'Departamento',
-                          'Cumpleaños',
-                          'Fecha Registro ',
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: const Color(0xFF0665A4),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100),
-                      child: Image.asset(
-                        'images/PICNITO LOGO.jpeg',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -159,16 +120,29 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                     DataColumn(label: Text('RFC')),
                     DataColumn(label: Text('OPCIONES')),
                   ],
-                  rows: <DataRow>[
-                    DataRow(
+                  // Dentro de tu código donde mapeas los usuarios
+                  rows: usuarios.map<DataRow>((usuario) {
+                    // Convertir la fecha en formato adecuado
+                    String formattedDate = '';
+                    if (usuario['cumpleanos'] != null) {
+                      DateTime cumpleanosDate =
+                          DateTime.parse(usuario['cumpleanos']);
+                      formattedDate = DateFormat('yyyy-MM-dd')
+                          .format(cumpleanosDate); // Formato 'AAAA-MM-DD'
+                    }
+
+                    return DataRow(
                       cells: <DataCell>[
-                        DataCell(Text('Ricardo Axel Contreras Morales')),
-                        DataCell(Text('Taquilla')),
-                        DataCell(Text('8333000055')),
-                        DataCell(Text('Ricky.empleado')),
-                        DataCell(Text('23-02-1995')),
-                        DataCell(Text('23-02-2025')),
-                        DataCell(Text('MIK...')),
+                        DataCell(Text(usuario['nombre'] ?? 'No disponible')),
+                        DataCell(
+                            Text(usuario['departamento'] ?? 'No disponible')),
+                        DataCell(Text(usuario['telefono'] ?? 'No disponible')),
+                        DataCell(Text(usuario['usuario'] ?? 'No disponible')),
+                        DataCell(
+                            Text(formattedDate)), // Usamos la fecha formateada
+                        DataCell(
+                            Text(usuario['fecha_registro'] ?? 'No disponible')),
+                        DataCell(Text(usuario['rfc'] ?? 'No disponible')),
                         DataCell(
                           Row(
                             children: [
@@ -186,8 +160,8 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                           ),
                         ),
                       ],
-                    ),
-                  ],
+                    );
+                  }).toList(),
                 ),
               ),
             ),

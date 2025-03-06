@@ -18,9 +18,9 @@ app.get('/', (req, res) => {
 
 // Endpoint para agregar un usuario
 app.post('/addUser', async (req, res) => {
-  const { nombre, apellidos, telefono, rfc, usuario, contrasena,confirmarcontrasena, cumpleanos, departamento } = req.body;
+  const { nombre, apellidos, telefono, rfc, usuario, contrasena, cumpleanos, departamento } = req.body;
 
-  if (!nombre || !apellidos|| !telefono || !rfc || !usuario || !contrasena || confirmarcontrasena || !cumpleanos || !departamento) {
+  if (!nombre || !apellidos|| !telefono || !rfc || !usuario || !contrasena || !cumpleanos || !departamento) {
     return res.status(400).send({ message: 'Todos los campos son necesarios' });
   }
 
@@ -51,6 +51,18 @@ app.post('/addUser', async (req, res) => {
     res.status(500).send({ message: 'Hubo un error al agregar al usuario' });
   }
 });
+
+app.get('/getUsers', async (req, res) => {
+  try {
+    const request = new sql.Request();
+    const result = await request.query('SELECT * FROM Usuarios');
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error('Error al obtener usuarios:', error);
+    res.status(500).json({ message: 'Hubo un error al obtener los usuarios' });
+  }
+});
+
 
 // Iniciar el servidor
 app.listen(PORT, () => {
