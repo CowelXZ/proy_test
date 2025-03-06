@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
-import 'database_helper.dart';
+import 'package:proy_test/RegistrarUsuario.dart'; // Asegúrate de importar tu archivo de RegistroU si es que está en otro archivo
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  DatabaseHelper.connect();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter SQL Server',
-      home: Scaffold(
-        appBar: AppBar(title: Text('Conexión Flutter-SQL Server')),
-        body: Center(child: Text('Revisar consola para estado de conexión')),
-      ),
+      debugShowCheckedModeBanner: false, // Opcional, para quitar el banner de debug
+      home: const RegistroU(), // Aquí ponemos directamente la pantalla de RegistroU como la principal
     );
   }
 }
