@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:proy_test/usuarios.dart'; // Asegúrate de importar el archivo correcto
+import 'package:proy_test/Administracion/usuarios.dart';
+import 'package:proy_test/Administracion/RegistrarPeliculas.dart' // Asegúrate de importar el archivo correcto
 
 void main() {
   runApp(const MyApp());
