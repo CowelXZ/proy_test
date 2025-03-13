@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:proy_test/Administracion/Peliculas.dart';
+import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
 import 'package:proy_test/Services/Multiseleccion.dart';
 import 'Funciones.dart';
@@ -65,114 +66,112 @@ class _ListaPeliculasState extends State<ListaPeliculas> {
 
     return "00:00:00"; // Si no se puede convertir, envía duración en ceros
   }
+
   Future<String?> subirImagen(File imagen) async {
-  var request = http.MultipartRequest(
-    'POST',
-    Uri.parse('http://localhost:3000/uploadImage'),
-  );
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://localhost:3000/uploadImage'),
+    );
 
-  request.files.add(await http.MultipartFile.fromPath('poster', imagen.path));
-  var response = await request.send();
+    request.files.add(await http.MultipartFile.fromPath('poster', imagen.path));
+    var response = await request.send();
 
-  if (response.statusCode == 200) {
-    var responseData = await response.stream.bytesToString();
-    var jsonData = json.decode(responseData);
-    return jsonData['imageUrl']; // ✅ Devuelve la URL de la imagen
-  } else {
-    print("❌ Error al subir la imagen: ${response.statusCode}");
-    return null;
+    if (response.statusCode == 200) {
+      var responseData = await response.stream.bytesToString();
+      var jsonData = json.decode(responseData);
+      return jsonData['imageUrl']; // ✅ Devuelve la URL de la imagen
+    } else {
+      print("❌ Error al subir la imagen: ${response.statusCode}");
+      return null;
+    }
   }
-}
-
 
   Future<void> guardarPelicula() async {
-  final titulo = tituloController.text.trim();
-  final director = directorController.text.trim();
-  final duracion = convertirDuracion(duracionController.text.trim());
-  final idiomas = idiomaController.text.trim();
-  final subtitulosBool = subtitulos == "Si" ? "1" : "0";
-  final genero = generoController.text.trim();
-  final clasificacion = dropdownValue;
-  final sinopsis = sinopsisController.text.trim();
+    final titulo = tituloController.text.trim();
+    final director = directorController.text.trim();
+    final duracion = convertirDuracion(duracionController.text.trim());
+    final idiomas = idiomaController.text.trim();
+    final subtitulosBool = subtitulos == "Si" ? "1" : "0";
+    final genero = generoController.text.trim();
+    final clasificacion = dropdownValue;
+    final sinopsis = sinopsisController.text.trim();
 
-  if ([titulo, director, duracion, idiomas, genero, clasificacion, sinopsis]
-      .any((element) => element.isEmpty)) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text("Todos los campos son obligatorios"),
-          backgroundColor: Colors.red),
-    );
-    return;
-  }
-
-  // 🔥 SUBIR LA IMAGEN ANTES DE GUARDAR
-  String? posterUrl;
-  if (_imagen != null) {
-    posterUrl = await subirImagen(_imagen!); // ✅ Subimos la imagen
-    if (posterUrl == null) {
+    if ([titulo, director, duracion, idiomas, genero, clasificacion, sinopsis]
+        .any((element) => element.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text("Error al subir la imagen"),
+            content: Text("Todos los campos son obligatorios"),
             backgroundColor: Colors.red),
       );
       return;
     }
-  }
 
-  final Map<String, String> movieData = {
-    'titulo': titulo,
-    'director': director,
-    'duracion': duracion,
-    'idiomas': idiomas,
-    'subtitulos': subtitulosBool,
-    'genero': genero,
-    'clasificacion': clasificacion,
-    'sinopsis': sinopsis,
-    'poster': posterUrl ?? "", // ✅ Guardamos la URL en la BD
-  };
+    // 🔥 SUBIR LA IMAGEN ANTES DE GUARDAR
+    String? posterUrl;
+    if (_imagen != null) {
+      posterUrl = await subirImagen(_imagen!); // ✅ Subimos la imagen
+      if (posterUrl == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Error al subir la imagen"),
+              backgroundColor: Colors.red),
+        );
+        return;
+      }
+    }
 
-  try {
-    final response = await http.post(
-      Uri.parse('http://localhost:3000/addMovie'),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode(movieData),
-    );
+    final Map<String, String> movieData = {
+      'titulo': titulo,
+      'director': director,
+      'duracion': duracion,
+      'idiomas': idiomas,
+      'subtitulos': subtitulosBool,
+      'genero': genero,
+      'clasificacion': clasificacion,
+      'sinopsis': sinopsis,
+      'poster': posterUrl ?? "", // ✅ Guardamos la URL en la BD
+    };
 
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("✅ Película guardada con éxito"),
-            backgroundColor: Colors.green),
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/addMovie'),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(movieData),
       );
 
-      await Future.delayed(
-          const Duration(seconds: 2)); // ✅ Espera para que se vea el mensaje
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("✅ Película guardada con éxito"),
+              backgroundColor: Colors.green),
+        );
 
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  const Peliculas()), // ✅ Redirige a Peliculas.dart
+        await Future.delayed(
+            const Duration(seconds: 2)); // ✅ Espera para que se vea el mensaje
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    const Peliculas()), // ✅ Redirige a Peliculas.dart
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text("❌ Error al guardar película: ${response.body}"),
+              backgroundColor: Colors.red),
         );
       }
-    } else {
+    } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text("❌ Error al guardar película: ${response.body}"),
+            content: Text("❌ Error de conexión: $error"),
             backgroundColor: Colors.red),
       );
     }
-  } catch (error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text("❌ Error de conexión: $error"),
-          backgroundColor: Colors.red),
-    );
   }
-}
-
-
 
   Future<void> _seleccionarImagen() async {
     final imgSeleccionada =
@@ -245,8 +244,6 @@ class _ListaPeliculasState extends State<ListaPeliculas> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -284,7 +281,11 @@ class _ListaPeliculasState extends State<ListaPeliculas> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.pop(context);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                          );
                         },
                         icon: const Icon(Icons.arrow_back,
                             color: Color.fromARGB(255, 255, 255, 255),

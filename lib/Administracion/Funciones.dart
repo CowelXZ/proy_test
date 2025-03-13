@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proy_test/HomeScreen.dart';
 import 'AñadirFunciones.dart';
 import 'RegistrarPeliculas.dart';
 
@@ -20,6 +21,7 @@ class Funciones extends StatelessWidget {
   }
 }
 
+//Atras
 class ListaFunciones extends StatefulWidget {
   const ListaFunciones({super.key});
 
@@ -52,7 +54,13 @@ class _ListaFuncionesState extends State<ListaFunciones> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                          );
+                        },
                       ),
                       const SizedBox(width: 10),
                       const Text(
@@ -149,7 +157,7 @@ class _ListaFuncionesState extends State<ListaFunciones> {
                   children: [
                     const Text(
                       'Funciones',
-                      style:  TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -184,8 +192,8 @@ class _ListaFuncionesState extends State<ListaFunciones> {
                               Row(
                                 children: [
                                   IconButton(
-                                    icon:
-                                        const Icon(Icons.edit, color: Colors.white),
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.white),
                                     onPressed: () {},
                                   ),
                                   IconButton(

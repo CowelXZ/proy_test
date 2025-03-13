@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:proy_test/Administracion/RegistrarPeliculas.dart';
+
 void main() {
   runApp(const listaPeliculas());
 }
@@ -173,7 +175,7 @@ class _PeliculasState extends State<Peliculas> {
                             IconButton(
                               icon: const Icon(Icons.arrow_back,
                                   color: Colors.white),
-                              onPressed: () {},
+                              onPressed: () {Navigator.pop(context);},
                             ),
                             const SizedBox(width: 10),
                             const Text(
@@ -235,7 +237,8 @@ class _PeliculasState extends State<Peliculas> {
                   ),
                   Center(
                     child: Stack(
-                      children: [//TarjetaPelicula
+                      children: [
+                        //TarjetaPelicula
                         Container(
                           width: 900,
                           height: 550,
@@ -279,7 +282,13 @@ class _PeliculasState extends State<Peliculas> {
                                   borderRadius: BorderRadius.circular(30)),
                               elevation: 2,
                               backgroundColor: const Color(0xff2365AD),
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const RPeliculas()),
+                                );
+                              },
                               child: const Icon(Icons.add,
                                   color: Colors.white, size: 35)),
                         )

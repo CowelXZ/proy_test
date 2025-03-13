@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
 import 'package:proy_test/Services/Multiseleccion.dart';
 import 'Funciones.dart';
@@ -45,7 +46,7 @@ class _FuncionesState extends State<Funciones> {
   String dropdownValue2 = '1';
   String dropdownValue3 = 'Español';
 
-  /*Future<void> _seleccionarImagen() async {
+  /*Atras
     final imgSeleccionada =
         await ImagePicker().pickImage(source: ImageSource.gallery);
 
@@ -129,7 +130,11 @@ class _FuncionesState extends State<Funciones> {
                         children: [
                           IconButton(
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const HomeScreen()),
+                              );
                             },
                             icon: const Icon(Icons.arrow_back,
                                 color: Color.fromARGB(255, 255, 255, 255),
