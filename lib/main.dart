@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proy_test/Administracion/usuarios.dart';
-import 'package:proy_test/Administracion/RegistrarPeliculas.dart' // Asegúrate de importar el archivo correcto
+import 'package:proy_test/HomeScreen.dart'; // Importar la nueva pantalla de menú
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const Usuarios(), // Ahora inicia en la pantalla de Usuarios
+      home: const HomeScreen(), // Inicia en el nuevo menú principal
     );
   }
 }

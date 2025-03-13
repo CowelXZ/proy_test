@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const listaPeliculas());
@@ -18,6 +20,7 @@ class listaPeliculas extends StatelessWidget {
   }
 }
 
+//build
 class Peliculas extends StatefulWidget {
   const Peliculas({super.key});
   @override
@@ -25,12 +28,40 @@ class Peliculas extends StatefulWidget {
 }
 
 class _PeliculasState extends State<Peliculas> {
+  List<dynamic> peliculas = [];
+  List<dynamic> peliculasFiltradas = []; // Tarjeta
+
+  @override
+  void initState() {
+    super.initState();
+    fetchMovies(); // Llama a la función para cargar las películas al iniciar
+  }
+
+  Future<void> fetchMovies() async {
+    final url = Uri.parse('http://localhost:3000/getMovies');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          peliculas = json.decode(response.body);
+          peliculasFiltradas = peliculas; // Inicializa la lista filtrada
+        });
+      } else {
+        print("Error al cargar las películas: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Excepción atrapada: $e");
+    }
+  }
+
   final TextEditingController buscadorController = TextEditingController();
   final String titulo = 'Jurassic Park';
   final String genero = 'Acción';
   final String idiomas = 'Español, Inglés';
 
-  Widget TarjetaPelicula(String titulo, String genero, String idiomas) {
+  Widget TarjetaPelicula(Map<String, dynamic> pelicula) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10, top: 10, right: 80, left: 10),
       child: Row(
@@ -41,10 +72,17 @@ class _PeliculasState extends State<Peliculas> {
               width: 100,
               height: 150,
               decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: Image.asset('images/Poster JWR.jpeg').image,
-                  fit: BoxFit.contain,
-                ),
+                image: pelicula['poster'] != null
+                    ? DecorationImage(
+                        image: NetworkImage(
+                            pelicula['poster']), // Cargar imagen desde URL
+                        fit: BoxFit.cover,
+                      )
+                    : const DecorationImage(
+                        image: AssetImage(
+                            'images/Poster JWR.jpeg'), // Imagen por defecto
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
           ),
@@ -54,7 +92,7 @@ class _PeliculasState extends State<Peliculas> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  titulo,
+                  pelicula['titulo'] ?? 'Título desconocido',
                   style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -62,17 +100,13 @@ class _PeliculasState extends State<Peliculas> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  'Género: $genero',
-                  style: const TextStyle(
-                    fontSize: 14,
-                  ),
+                  'Género: ${pelicula['genero'] ?? 'Desconocido'}',
+                  style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  'Idiomas: $idiomas',
-                  style: const TextStyle(
-                    fontSize: 14,
-                  ),
+                  'Idiomas: ${pelicula['idiomas'] ?? 'Desconocido'}',
+                  style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -83,7 +117,8 @@ class _PeliculasState extends State<Peliculas> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
-                          side: BorderSide(color: Colors.black, width: 1)),
+                          side:
+                              const BorderSide(color: Colors.black, width: 1)),
                       onPressed: () {},
                       child: const Text('Editar',
                           style: TextStyle(color: Colors.black)),
@@ -92,7 +127,7 @@ class _PeliculasState extends State<Peliculas> {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           elevation: 2,
-                          side: BorderSide(color: Colors.black, width: 1),
+                          side: const BorderSide(color: Colors.black, width: 1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           )),
@@ -172,7 +207,15 @@ class _PeliculasState extends State<Peliculas> {
                                   borderSide: BorderSide.none,
                                 ),
                               ),
-                              onChanged: (String value) {},
+                              onChanged: (String value) {
+                                setState(() {
+                                  peliculasFiltradas = peliculas
+                                      .where((pelicula) => pelicula['titulo']
+                                          .toLowerCase()
+                                          .contains(value.toLowerCase()))
+                                      .toList();
+                                });
+                              },
                             ),
                           ),
                         ),
@@ -192,7 +235,7 @@ class _PeliculasState extends State<Peliculas> {
                   ),
                   Center(
                     child: Stack(
-                      children: [
+                      children: [//TarjetaPelicula
                         Container(
                           width: 900,
                           height: 550,
@@ -221,13 +264,13 @@ class _PeliculasState extends State<Peliculas> {
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                TarjetaPelicula(titulo, genero, idiomas),
-                                TarjetaPelicula(titulo, genero, idiomas),
-                                TarjetaPelicula(titulo, genero, idiomas),
+                                ...peliculasFiltradas
+                                    .map((p) => TarjetaPelicula(p))
+                                    .toList(),
                               ],
                             ),
                           ),
-                        ),
+                        ), //TextField
                         Positioned(
                           bottom: 20,
                           right: 20,
