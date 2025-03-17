@@ -5,6 +5,11 @@ import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
 import 'package:proy_test/Services/Multiseleccion.dart';
 import 'Funciones.dart';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:proy_test/Administracion/Funciones.dart';
 
 void main() {
   runApp(const AFunciones());
@@ -45,19 +50,92 @@ class _FuncionesState extends State<Funciones> {
   String dropdownValue = 'Tradicional';
   String dropdownValue2 = '1';
   String dropdownValue3 = 'Español';
+  String convertirHorario(String horario) {
+    final RegExp regex = RegExp(r'(\d+)h\s*(\d+)m'); // Extrae "10h 30m"
+    final match = regex.firstMatch(horario);
 
-  /*Atras
-    final imgSeleccionada =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (match != null) {
+      final horas = match.group(1) ?? "0";
+      final minutos = match.group(2) ?? "0";
+      return "${horas.padLeft(2, '0')}:${minutos.padLeft(2, '0')}:00"; // HH:mm:ss
+    }
 
-    setState(() {
-      if (imgSeleccionada != null) {
-        _imagen = File(imgSeleccionada.path);
+    return "00:00:00"; // En caso de error
+  }
+
+  Future<void> guardarFuncion() async {
+    final titulo = tituloController.text.trim();
+    final horario = convertirHorario(horarioController.text.trim());
+    final fecha = fechaController.text.trim();
+    final sala = dropdownValue2;
+    final tipoSala = dropdownValue;
+    final idioma = dropdownValue3;
+    final poster = _imagen?.path ?? "";
+
+    if ([titulo, horario, fecha, sala, tipoSala, idioma]
+        .any((element) => element.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Todos los campos son obligatorios"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final Map<String, String> functionData = {
+      'titulo': titulo,
+      'horario': horario,
+      'fecha': fecha,
+      'sala': sala,
+      'tipo_sala': tipoSala,
+      'idioma': idioma,
+      'poster': poster,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/addFunction'),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(functionData),
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Función guardada con éxito"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 2));
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  const Funciones(), // 🔄 Redirige a Funciones.dart
+            ),
+          );
+        }
       } else {
-        Exception('No image selected.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error al guardar función: ${response.body}"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-    });
-  }*/
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error de conexión: $error"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   Future<void> _seleccionarHorario() async {
     final TimeOfDay? picked = await showTimePicker(
@@ -461,13 +539,15 @@ class _FuncionesState extends State<Funciones> {
                               height: 40,
                               width: 200,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: guardarFuncion,
                                 style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(5)),
-                                    backgroundColor: const Color(0xff14AE5C)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  backgroundColor: const Color(0xff14AE5C),
+                                ),
                                 child: const Text(
-                                  'Guardar Funcion',
+                                  'Guardar Función',
                                   style: TextStyle(color: Color(0xffF5F5F5)),
                                 ),
                               ),

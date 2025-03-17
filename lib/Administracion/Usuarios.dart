@@ -4,6 +4,8 @@ import 'package:proy_test/Administracion/RegistrarUsuario.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:proy_test/HomeScreen.dart';
+
 void main() {
   runApp(const Usuarios());
 }
@@ -138,11 +140,18 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  //cumpleaños
                   Row(
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                          );
+                        },
                       ),
                       const SizedBox(width: 10),
                       const Text(
@@ -243,15 +252,15 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                     DataColumn(label: Text('DEPARTAMENTO')),
                     DataColumn(label: Text('TELÉFONO')),
                     DataColumn(label: Text('USUARIO')),
-                    DataColumn(label: Text('CUMPLEAÑOS')),
+                    DataColumn(label: Text('FEC NACIMIENTO')),
                     DataColumn(label: Text('FECHA REGISTRO')),
                     DataColumn(label: Text('RFC')),
                     DataColumn(label: Text('OPCIONES')),
                   ],
                   rows: usuariosFiltrados.map<DataRow>((usuario) {
-                    String formattedDate = usuario['cumpleanos'] != null
+                    String formattedDate = usuario['nacimiento'] != null
                         ? DateFormat('yyyy-MM-dd')
-                            .format(DateTime.parse(usuario['cumpleanos']))
+                            .format(DateTime.parse(usuario['nacimiento']))
                         : 'No disponible';
 
                     return DataRow(cells: [

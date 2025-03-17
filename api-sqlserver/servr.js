@@ -164,6 +164,114 @@ app.get('/getMovies', async (req, res) => {
   }
 });
 
+app.delete('/deleteMovie/:id', async (req, res) => {
+  try {
+      const movieId = parseInt(req.params.id, 10);
+
+      if (isNaN(movieId)) {
+          return res.status(400).json({ message: 'ID de película inválido' });
+      }
+
+      const request = new sql.Request();
+      request.input('id', sql.Int, movieId);
+
+      const result = await request.query('DELETE FROM Peliculas WHERE id = @id');
+
+      if (result.rowsAffected[0] > 0) {
+          console.log(`✅ Película con ID ${movieId} eliminada`);
+          res.status(200).json({ message: 'Película eliminada con éxito' });
+      } else {
+          console.log(`⚠️ No se encontró la película con ID ${movieId}`);
+          res.status(404).json({ message: 'Película no encontrada' });
+      }
+  } catch (error) {
+      console.error('❌ Error al eliminar película:', error);
+      res.status(500).json({ message: 'Error al eliminar película' });
+  }
+});app.post('/addFunction', async (req, res) => {
+  try {
+    let { titulo, horario, fecha, sala, tipo_sala, idioma, poster } = req.body;
+
+    console.log("📥 Datos recibidos:", { titulo, horario, fecha, sala, tipo_sala, idioma, poster });
+
+    if (!titulo || !horario || !fecha || !sala || !tipo_sala || !idioma) {
+      return res.status(400).json({ message: "Todos los campos son obligatorios." });
+    }
+
+    // Validar y formatear horario
+    const horarioValido = /^([01]?\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(horario);
+    if (!horarioValido) {
+      console.log("⛔ Error: Formato de horario incorrecto →", horario);
+      return res.status(400).json({ message: "Formato de horario inválido. Usa HH:mm:ss" });
+    }
+
+    console.log("⏳ Horario formateado para SQL:", horario);
+
+    const request = new sql.Request();
+    request.input('titulo', sql.NVarChar, titulo);
+    request.input('horario', sql.NVarChar, horario); // Enviamos como string válido
+    request.input('fecha', sql.Date, fecha);
+    request.input('sala', sql.Int, sala);
+    request.input('tipo_sala', sql.NVarChar, tipo_sala);
+    request.input('idioma', sql.NVarChar, idioma);
+    request.input('poster', sql.NVarChar, poster || null);
+
+    await request.query(`
+      INSERT INTO Funciones (titulo, horario, fecha, sala, tipo_sala, idioma, poster)
+      VALUES (@titulo, @horario, @fecha, @sala, @tipo_sala, @idioma, @poster)
+    `);
+
+    console.log("✅ Función agregada con éxito:", titulo);
+    res.status(201).json({ message: "✅ Función agregada con éxito" });
+
+  } catch (error) {
+    console.error("❌ Error al agregar función:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+
+app.get('/getFunctions', async (req, res) => {
+  try {
+    console.log("📡 Obteniendo funciones...");
+    const request = new sql.Request();
+    const result = await request.query('SELECT * FROM Funciones ORDER BY fecha DESC, horario ASC');
+
+    console.log("✅ Funciones obtenidas:", result.recordset.length);
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error("❌ Error al obtener funciones:", error);
+    res.status(500).json({ message: "Error al obtener funciones" });
+  }
+});
+
+app.delete('/deleteFunction/:id', async (req, res) => {
+  try {
+    const functionId = parseInt(req.params.id, 10);
+    if (isNaN(functionId)) {
+      return res.status(400).json({ message: 'ID inválido' });
+    }
+
+    console.log("🗑️ Eliminando función con ID:", functionId);
+
+    const request = new sql.Request();
+    request.input('id', sql.Int, functionId);
+    const result = await request.query('DELETE FROM Funciones WHERE id = @id');
+
+    if (result.rowsAffected[0] > 0) {
+      console.log("✅ Función eliminada con éxito:", functionId);
+      res.status(200).json({ message: "✅ Función eliminada con éxito" });
+    } else {
+      console.log("⚠️ Función no encontrada:", functionId);
+      res.status(404).json({ message: "Función no encontrada" });
+    }
+  } catch (error) {
+    console.error("❌ Error al eliminar función:", error);
+    res.status(500).json({ message: "Error al eliminar función" });
+  }
+});
+
+
+
 //Muerte Mentalconst fs = require('fs');
 const multer = require('multer');
 const path = require('path');

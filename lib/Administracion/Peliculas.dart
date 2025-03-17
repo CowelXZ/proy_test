@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:proy_test/Administracion/RegistrarPeliculas.dart';
+import 'package:proy_test/HomeScreen.dart';
 
 void main() {
   runApp(const listaPeliculas());
@@ -37,6 +38,68 @@ class _PeliculasState extends State<Peliculas> {
   void initState() {
     super.initState();
     fetchMovies(); // Llama a la función para cargar las películas al iniciar
+    cargarPeliculas();
+  }
+
+  void eliminarPelicula(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('http://localhost:3000/deleteMovie/$id'),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Película eliminada con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        setState(() {
+          peliculas.removeWhere((pelicula) => pelicula['id'] == id);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al eliminar la película'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error de conexión: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> cargarPeliculas() async {
+    try {
+      final response =
+          await http.get(Uri.parse('http://localhost:3000/getMovies'));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          peliculas =
+              List<Map<String, dynamic>>.from(json.decode(response.body));
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text("❌ Error al cargar películas: ${response.body}"),
+              backgroundColor: Colors.red),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text("❌ Error de conexión: $error"),
+            backgroundColor: Colors.red),
+      );
+    }
   }
 
   Future<void> fetchMovies() async {
@@ -133,7 +196,34 @@ class _PeliculasState extends State<Peliculas> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           )),
-                      onPressed: () {},
+                      onPressed: () async {
+                        final response = await http.delete(
+                          Uri.parse(
+                              'http://localhost:3000/deleteMovie/${pelicula['id']}'),
+                        );
+
+                        if (response.statusCode == 200) {
+                          setState(() {
+                            peliculas.removeWhere((p) =>
+                                p['id'] ==
+                                pelicula[
+                                    'id']); // 🔄 Eliminar de la lista localmente
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("✅ Película eliminada"),
+                                backgroundColor: Colors.green),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    "❌ Error al eliminar película: ${response.body}"),
+                                backgroundColor: Colors.red),
+                          );
+                        }
+                      },
                       child: const Text('Eliminar',
                           style: TextStyle(color: Colors.black)),
                     ),
@@ -175,7 +265,13 @@ class _PeliculasState extends State<Peliculas> {
                             IconButton(
                               icon: const Icon(Icons.arrow_back,
                                   color: Colors.white),
-                              onPressed: () {Navigator.pop(context);},
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const HomeScreen()),
+                                );
+                              },
                             ),
                             const SizedBox(width: 10),
                             const Text(
@@ -238,7 +334,7 @@ class _PeliculasState extends State<Peliculas> {
                   Center(
                     child: Stack(
                       children: [
-                        //TarjetaPelicula
+                        //Eliminar
                         Container(
                           width: 900,
                           height: 550,
@@ -281,7 +377,7 @@ class _PeliculasState extends State<Peliculas> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30)),
                               elevation: 2,
-                              backgroundColor: const Color(0xff2365AD),
+                              backgroundColor: const Color.fromARGB(255, 8, 189, 23),
                               onPressed: () {
                                 Navigator.push(
                                   context,
