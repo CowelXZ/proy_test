@@ -75,6 +75,33 @@ class _PeliculasState extends State<Peliculas> {
       );
     }
   }
+  void _confirmarEliminacion(BuildContext context, int peliculaId) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text("¿Estás seguro?"),
+        content: const Text("Esta acción eliminará la película de manera permanente."),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Cerrar el diálogo sin hacer nada
+            },
+            child: const Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Cerrar el diálogo
+              eliminarPelicula(peliculaId);
+            },
+            child: const Text("Eliminar", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   Future<void> cargarPeliculas() async {
     try {
@@ -127,115 +154,125 @@ class _PeliculasState extends State<Peliculas> {
   final String idiomas = 'Español, Inglés';
 
   Widget TarjetaPelicula(Map<String, dynamic> pelicula) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10, top: 10, right: 80, left: 10),
-      child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              width: 100,
-              height: 150,
-              decoration: BoxDecoration(
-                image: pelicula['poster'] != null
-                    ? DecorationImage(
-                        image: NetworkImage(
-                            pelicula['poster']), // Cargar imagen desde URL
-                        fit: BoxFit.cover,
-                      )
-                    : const DecorationImage(
-                        image: AssetImage(
-                            'images/Poster JWR.jpeg'), // Imagen por defecto
-                        fit: BoxFit.cover,
-                      ),
+  return Card(
+    margin: const EdgeInsets.only(bottom: 10, top: 10, right: 80, left: 10),
+    child: Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            width: 100,
+            height: 150,
+            decoration: BoxDecoration(
+              image: pelicula['poster'] != null
+                  ? DecorationImage(
+                      image: NetworkImage(pelicula['poster']), // Cargar imagen desde URL
+                      fit: BoxFit.cover,
+                    )
+                  : const DecorationImage(
+                      image: AssetImage('images/Poster JWR.jpeg'), // Imagen por defecto
+                      fit: BoxFit.cover,
+                    ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                pelicula['titulo'] ?? 'Título desconocido',
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
               ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  pelicula['titulo'] ?? 'Título desconocido',
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Género: ${pelicula['genero'] ?? 'Desconocido'}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Idiomas: ${pelicula['idiomas'] ?? 'Desconocido'}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          side:
-                              const BorderSide(color: Colors.black, width: 1)),
-                      onPressed: () {},
-                      child: const Text('Editar',
-                          style: TextStyle(color: Colors.black)),
+              const SizedBox(height: 5),
+              Text(
+                'Género: ${pelicula['genero'] ?? 'Desconocido'}',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'Idiomas: ${pelicula['idiomas'] ?? 'Desconocido'}',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      side: const BorderSide(color: Colors.black, width: 1),
                     ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          elevation: 2,
-                          side: const BorderSide(color: Colors.black, width: 1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          )),
-                      onPressed: () async {
-                        final response = await http.delete(
-                          Uri.parse(
-                              'http://localhost:3000/deleteMovie/${pelicula['id']}'),
-                        );
-
-                        if (response.statusCode == 200) {
-                          setState(() {
-                            peliculas.removeWhere((p) =>
-                                p['id'] ==
-                                pelicula[
-                                    'id']); // 🔄 Eliminar de la lista localmente
-                          });
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("✅ Película eliminada"),
-                                backgroundColor: Colors.green),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    "❌ Error al eliminar película: ${response.body}"),
-                                backgroundColor: Colors.red),
-                          );
-                        }
-                      },
-                      child: const Text('Eliminar',
-                          style: TextStyle(color: Colors.black)),
+                    onPressed: () {},
+                    child: const Text('Editar', style: TextStyle(color: Colors.black)),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 2,
+                      side: const BorderSide(color: Colors.black, width: 1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                    onPressed: () {
+                      _confirmarEliminacion(context, pelicula['id']);
+                    },
+                    child: const Text('Eliminar', style: TextStyle(color: Colors.black)),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
+      ],
+    ),
+  );
+}
+
+// Función para mostrar el diálogo de confirmación
+
+
+// Función para eliminar la película
+void _eliminarPelicula(int id) async {
+  try {
+    final response = await http.delete(
+      Uri.parse('http://localhost:3000/deleteMovie/$id'),
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Película eliminada con éxito'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      setState(() {
+        peliculas.removeWhere((pelicula) => pelicula['id'] == id);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al eliminar la película'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error de conexión: $e'),
+        backgroundColor: Colors.red,
       ),
     );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -377,7 +414,7 @@ class _PeliculasState extends State<Peliculas> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30)),
                               elevation: 2,
-                              backgroundColor: const Color.fromARGB(255, 8, 189, 23),
+                              backgroundColor: const Color(0xFF14AE5C),
                               onPressed: () {
                                 Navigator.push(
                                   context,

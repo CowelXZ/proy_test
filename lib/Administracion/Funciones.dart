@@ -99,7 +99,7 @@ class _ListaFuncionesState extends State<ListaFunciones> {
                   Row(
                     children: [
                       const Text(
-                        'Filtrar:',
+                        'Ordenar:',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,

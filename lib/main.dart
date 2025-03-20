@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:proy_test/HomeScreen.dart'; // Importar la nueva pantalla de menú
+import 'package:bitsdojo_window/bitsdojo_window.dart'; // Importar el paquete
+import 'package:proy_test/HomeScreen.dart'; // Importar la pantalla de inicio
 
 void main() {
   runApp(const MyApp());
+
+  doWhenWindowReady(() {
+    const initialSize = Size(1000, 600); // Tamaño inicial de la ventana
+    appWindow.size = initialSize;
+    appWindow.title = "(BTS) Bite Technology System"; // Cambiar el nombre de la ventana
+    appWindow.show();
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -11,8 +19,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      title: "BTS",
       debugShowCheckedModeBanner: false,
-      home: const HomeScreen(), // Inicia en el nuevo menú principal
+      home: const HomeScreen(), // Inicia en la pantalla de inicio
     );
   }
 }

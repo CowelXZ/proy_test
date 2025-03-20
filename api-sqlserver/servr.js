@@ -54,30 +54,50 @@ app.post('/addUser', async (req, res) => {
 // ✅ Obtener usuarios con orden dinámico
 app.get('/getUsers', async (req, res) => {
   try {
-    const { orderBy } = req.query;
-    let orderClause = '';
+    const { orderBy, departamento } = req.query;
+    let query = `
+      SELECT 
+        id, 
+        ISNULL(CONCAT(nombre, ' ', apellidos), 'Desconocido') AS nombre_completo, 
+        telefono, 
+        rfc, 
+        usuario, 
+        FORMAT(cumpleanos, 'yyyy-MM-dd') AS cumpleanos, 
+        departamento 
+      FROM Usuarios
+    `;
+
+    const request = new sql.Request();
+
+    if (departamento && departamento !== "Todos") {
+      query += ' WHERE departamento = @departamento';
+      request.input('departamento', sql.NVarChar, departamento);
+    }
 
     switch (orderBy) {
       case 'Cumpleaños':
-        orderClause = 'ORDER BY cumpleanos ASC';
+        query += ' ORDER BY cumpleanos ASC';
         break;
       case 'Fecha Registro':
-        orderClause = 'ORDER BY id DESC'; // Suponiendo que el ID es incremental
+        query += ' ORDER BY id DESC';
         break;
       case 'Departamento':
-        orderClause = 'ORDER BY departamento ASC';
+        query += ' ORDER BY departamento ASC';
         break;
     }
 
-    const request = new sql.Request();
-    const result = await request.query(`SELECT * FROM Usuarios ${orderClause}`);
-
+    const result = await request.query(query);
+    console.log("📡 Usuarios obtenidos:", result.recordset);
     res.status(200).json(result.recordset);
   } catch (error) {
     console.error('❌ Error al obtener usuarios:', error);
     res.status(500).json({ message: 'Error al obtener los usuarios' });
   }
 });
+
+
+
+
 
 // ✅ Eliminar un usuario
 app.delete('/deleteUser/:id', async (req, res) => {

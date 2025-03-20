@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:proy_test/Administracion/A%C3%B1adirFunciones.dart';
 import 'package:proy_test/Administracion/Funciones.dart';
 import 'package:proy_test/Administracion/Peliculas.dart';
+import 'package:proy_test/Administracion/RegistroCombos.dart';
+import 'package:proy_test/Administracion/RegistroConsumibles.dart';
+import 'package:proy_test/Administracion/RegistroIntermedios.dart';
+import 'package:proy_test/Administracion/RegistroProductos.dart';
+import 'package:proy_test/Administracion/RegistroProovedores.dart';
 import 'package:proy_test/Administracion/Usuarios.dart';
 import 'package:proy_test/Administracion/RegistrarPeliculas.dart';
 
@@ -32,7 +37,12 @@ class HomeScreen extends StatelessWidget {
               _buildMenuButton(context, 'Administrar Películas', const Peliculas()),
               _buildMenuButton(context, 'Registrar Película', const RPeliculas()),
               _buildMenuButton(context, 'Registrar Funciones', const AFunciones()),
-              _buildMenuButton(context, 'Funciones', const ListaFunciones()),
+              _buildMenuButton(context, 'Registrar Combos', const Registrocombos()),
+              _buildMenuButton(context, 'Registrar Consumibles', const Registroconsumibles()),
+              _buildMenuButton(context, 'Registro Intermedios', const Registrointermedios()),
+              _buildMenuButton(context, 'Registro Productos', const Registroproductos()),
+              _buildMenuButton(context, 'Registro Proveedores', const Rproveedores()),
+
             ],
           ),
         ),

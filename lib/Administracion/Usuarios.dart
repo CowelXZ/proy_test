@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:proy_test/Administracion/RegistrarUsuario.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:proy_test/HomeScreen.dart';
 
 void main() {
@@ -35,7 +34,16 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
   final TextEditingController buscadorController = TextEditingController();
   List<dynamic> usuarios = [];
   List<dynamic> usuariosFiltrados = [];
-  String dropdownValue = 'Departamento';
+  String dropdownValue = 'Todos';
+  String formatearFecha(String? fecha) {
+    if (fecha == null || fecha.isEmpty) return 'No disponible';
+    try {
+      DateTime parsedDate = DateTime.parse(fecha);
+      return DateFormat('yyyy-MM-dd').format(parsedDate); // Solo YYYY-MM-DD
+    } catch (e) {
+      return 'Formato inválido';
+    }
+  }
 
   @override
   void initState() {
@@ -50,7 +58,8 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
         return AlertDialog(
           title: const Text("¿Estás seguro?"),
           content: const Text(
-              "Esta acción eliminará el usuario de manera permanente."),
+            "Esta acción eliminará el usuario de manera permanente.",
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -81,7 +90,9 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
           usuarios.removeWhere((usuario) => usuario['id'] == userId);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuario eliminado exitosamente')),
+          const SnackBar(content: Text('Usuario eliminado exitosamente'),
+          backgroundColor: Color(0xff14AE5C),
+          ),
         );
       } else {
         print("Error al eliminar usuario: ${response.statusCode}");
@@ -92,14 +103,14 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
   }
 
   Future<void> fetchUsuarios() async {
-    final url =
-        Uri.parse('http://localhost:3000/getUsers?orderBy=$dropdownValue');
+    final url = Uri.parse(
+        'http://localhost:3000/getUsers?orderBy=Departamento&departamento=$dropdownValue');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         setState(() {
           usuarios = json.decode(response.body);
-          usuariosFiltrados = usuarios; // Inicializa con todos los usuarios
+          usuariosFiltrados = usuarios;
         });
       } else {
         print("Error al cargar los usuarios: ${response.statusCode}");
@@ -115,7 +126,7 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
         usuariosFiltrados = usuarios;
       } else {
         usuariosFiltrados = usuarios.where((usuario) {
-          final nombre = usuario['nombre']?.toString().toLowerCase() ?? '';
+          final nombre = usuario['nombre_completo']?.toString().toLowerCase() ?? '';
           return nombre.contains(query.toLowerCase());
         }).toList();
       }
@@ -191,7 +202,7 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                   Row(
                     children: [
                       const Text(
-                        'Filtrar por:',
+                        'Filtrar por Departamento:',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
@@ -215,8 +226,13 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                             fetchUsuarios();
                           }
                         },
-                        items: ['Departamento', 'Cumpleaños', 'Fecha Registro']
-                            .map<DropdownMenuItem<String>>((String value) {
+                        items: [
+                          'Todos',
+                          'Cafeteria',
+                          'Limpieza',
+                          'Dulceria',
+                          'Taquilla'
+                        ].map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
@@ -225,6 +241,7 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                       ),
                     ],
                   ),
+
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: const Color(0xFF0665A4),
@@ -253,25 +270,16 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                     DataColumn(label: Text('TELÉFONO')),
                     DataColumn(label: Text('USUARIO')),
                     DataColumn(label: Text('FEC NACIMIENTO')),
-                    DataColumn(label: Text('FECHA REGISTRO')),
                     DataColumn(label: Text('RFC')),
                     DataColumn(label: Text('OPCIONES')),
                   ],
                   rows: usuariosFiltrados.map<DataRow>((usuario) {
-                    String formattedDate = usuario['nacimiento'] != null
-                        ? DateFormat('yyyy-MM-dd')
-                            .format(DateTime.parse(usuario['nacimiento']))
-                        : 'No disponible';
-
                     return DataRow(cells: [
-                      DataCell(Text(usuario['nombre'] ?? 'No disponible')),
-                      DataCell(
-                          Text(usuario['departamento'] ?? 'No disponible')),
+                      DataCell(Text(usuario['nombre_completo'] ?? 'No disponible')),
+                      DataCell(Text(usuario['departamento'] ?? 'No disponible')),
                       DataCell(Text(usuario['telefono'] ?? 'No disponible')),
                       DataCell(Text(usuario['usuario'] ?? 'No disponible')),
-                      DataCell(Text(formattedDate)),
-                      DataCell(
-                          Text(usuario['fecha_registro'] ?? 'No disponible')),
+                      DataCell(Text(formatearFecha(usuario['cumpleanos']))),
                       DataCell(Text(usuario['rfc'] ?? 'No disponible')),
                       DataCell(
                         Row(
