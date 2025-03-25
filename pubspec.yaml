@@ -27,3 +27,11 @@ flutter:
 
   assets:
     - images/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "images/PICNITO LOGO.jpeg" # Ruta de tu icono
+  #adaptive_icon_background: "#ffffff"    # Opcional, para Android 8+
+  #adaptive_icon_foreground: "assets/icon/app_icon_foreground.png" # Opcional
+

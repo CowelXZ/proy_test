@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +37,37 @@ class _formularioState extends State<formulario> {
   final nombreController = TextEditingController();
   final telefonoController = TextEditingController();
   final direccionController = TextEditingController();
+  final rfcController = TextEditingController();
+
+  void guardarProveedor() async {
+    final url = Uri.parse('http://localhost:3000/addProveedor');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'nombre': nombreController.text,
+        'correo': correoController.text,
+        'telefono': telefonoController.text,
+        'direccion': direccionController.text,
+        'rfc': rfcController.text,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ Proveedor agregado con éxito'),
+        backgroundColor: Color.fromARGB(255, 0, 255, 0),),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❌ Error al agregar proveedor')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -258,6 +291,35 @@ class _formularioState extends State<formulario> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(height: 50),
+                                  const Text(
+                                    'RFC',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Container(
+                                    width: 250,
+                                    height: 35,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: TextField(
+                                      cursorColor: const Color(0xff000000),
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Color(0xff000000)),
+                                      controller: rfcController,
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        contentPadding: EdgeInsets.only(
+                                            left: 10, bottom: 10),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               )
                             ],
@@ -271,7 +333,7 @@ class _formularioState extends State<formulario> {
                           height: 40,
                           width: 200,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: guardarProveedor,
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),

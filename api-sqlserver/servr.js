@@ -290,6 +290,64 @@ app.delete('/deleteFunction/:id', async (req, res) => {
   }
 });
 
+// ✅ Agregar un proveedor con RFC
+app.post('/addProveedor', async (req, res) => {
+  try {
+    const { nombre, correo, telefono, direccion, rfc } = req.body;
+
+    if (!nombre || !correo || !telefono || !direccion || !rfc) {
+      return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
+    }
+
+    const request = new sql.Request();
+    request.input('nombre', sql.NVarChar, nombre);
+    request.input('correo', sql.NVarChar, correo);
+    request.input('telefono', sql.NVarChar, telefono);
+    request.input('direccion', sql.NVarChar, direccion);
+    request.input('rfc', sql.NVarChar, rfc);
+
+    await request.query(`
+      INSERT INTO Proveedores (nombre, correo, telefono, direccion, rfc)
+      VALUES (@nombre, @correo, @telefono, @direccion, @rfc)
+    `);
+
+    res.status(201).json({ message: '✅ Proveedor agregado con éxito' });
+  } catch (error) {
+    console.error('❌ Error al agregar proveedor:', error);
+    res.status(500).json({ message: 'Error al agregar proveedor' });
+  }
+});
+
+// ✅ Agregar un consumible
+app.post('/addConsumible', async (req, res) => {
+  try {
+    const { nombre, proveedor, stock, unidad, precio_unitario, imagen } = req.body;
+
+    if (!nombre || !proveedor || !stock || !unidad || !precio_unitario) {
+      return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
+    }
+
+    const request = new sql.Request();
+    request.input('nombre', sql.NVarChar, nombre);
+    request.input('proveedor', sql.NVarChar, proveedor);
+    request.input('stock', sql.Int, stock);
+    request.input('unidad', sql.NVarChar, unidad);
+    request.input('precio_unitario', sql.Float, precio_unitario);
+    request.input('imagen', sql.NVarChar, imagen || null);
+
+    await request.query(`
+      INSERT INTO Consumibles (nombre, proveedor, stock, unidad, precio_unitario, imagen)
+      VALUES (@nombre, @proveedor, @stock, @unidad, @precio_unitario, @imagen)
+    `);
+
+    res.status(201).json({ message: '✅ Consumible agregado con éxito' });
+  } catch (error) {
+    console.error('❌ Error al agregar consumible:', error);
+    res.status(500).json({ message: 'Error al agregar consumible' });
+  }
+});
+
+
 
 
 //Muerte Mentalconst fs = require('fs');

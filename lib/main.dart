@@ -6,7 +6,7 @@ void main() {
   runApp(const MyApp());
 
   doWhenWindowReady(() {
-    const initialSize = Size(1000, 600); // Tamaño inicial de la ventana
+    const initialSize = Size(1000, 750); // Tamaño inicial de la ventana
     appWindow.size = initialSize;
     appWindow.title = "(BTS) Bite Technology System"; // Cambiar el nombre de la ventana
     appWindow.show();

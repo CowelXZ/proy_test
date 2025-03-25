@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -41,6 +43,37 @@ class _formularioState extends State<formulario> {
 
   List<String> _items = ["FEMSA", "SABRITAS", "VERDEVALLE"];
   String proveedor = '';
+
+  void guardarConsumible() async {
+    final url = Uri.parse('http://localhost:3000/addConsumible');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'nombre': nombreController.text,
+        'proveedor': proveedorController.text,
+        'stock': int.tryParse(stockController.text) ?? 0,
+        'unidad': dropdownValue,
+        'precio_unitario': double.tryParse(precioUController.text) ?? 0.0,
+        'imagen': _imagen?.path ?? '', // Ruta de la imagen seleccionada
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ Consumible agregado con éxito'),
+        backgroundColor: Color.fromARGB(255, 0, 255, 0),),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❌ Error al agregar consumible')),
+      );
+    }
+  }
 
   Future<void> _seleccionarImagen() async {
     final imgSeleccionada =
@@ -130,7 +163,8 @@ class _formularioState extends State<formulario> {
                               Row(
                                 children: [
                                   IconButton(
-                                    onPressed: () {Navigator.pushReplacement(
+                                    onPressed: () {
+                                      Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
@@ -347,15 +381,16 @@ class _formularioState extends State<formulario> {
                                             },
                                             value: dropdownValue,
                                             icon: const Icon(
-                                                Icons.arrow_drop_down, color: Colors.black),
+                                                Icons.arrow_drop_down,
+                                                color: Colors.black),
                                             iconSize: 20,
                                             elevation: 16,
                                             style: const TextStyle(
                                                 color: Colors.black),
-                                              underline: Container(
-                                                height: 0,
-                                                color: Colors.black,
-                                              ),
+                                            underline: Container(
+                                              height: 0,
+                                              color: Colors.black,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -403,7 +438,8 @@ class _formularioState extends State<formulario> {
                           height: 40,
                           width: 200,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed:
+                                guardarConsumible, // ✅ Actualización aquí
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),
