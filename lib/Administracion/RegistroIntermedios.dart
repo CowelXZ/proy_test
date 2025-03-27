@@ -47,6 +47,23 @@ class _formularioState extends State<formulario> {
   ];
   List<String> _consumiblesSeleccionados = [];
 
+  void guardarFinta() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ Guardado Correctamente'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    // Simular un pequeño delay antes de cambiar la pantalla
+    Future.delayed(const Duration(milliseconds: 500), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    });
+  }
+
   Future<void> _seleccionarImagen() async {
     final imgSeleccionada =
         await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -135,7 +152,8 @@ class _formularioState extends State<formulario> {
                               Row(
                                 children: [
                                   IconButton(
-                                    onPressed: () {Navigator.pushReplacement(
+                                    onPressed: () {
+                                      Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
@@ -503,7 +521,7 @@ class _formularioState extends State<formulario> {
                           height: 40,
                           width: 200,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: guardarFinta, // ✅ Solo hace la finta
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),
@@ -511,7 +529,7 @@ class _formularioState extends State<formulario> {
                               backgroundColor: const Color(0xff14AE5C),
                             ),
                             child: const Text(
-                              'Guardar Consumible',
+                              'Guardar Intermedio',
                               style: TextStyle(color: Color(0xffF5F5F5)),
                             ),
                           ),

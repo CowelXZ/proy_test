@@ -247,11 +247,16 @@ class _RegistroUState extends State<RegistroU> {
                                   ),
                                 ],
                               ),
-                              const CircleAvatar(
-                                radius: 25,
-                                backgroundColor: Color(0xFF081C42),
-                                child: Icon(Icons.account_circle_outlined,
-                                    size: 50, color: Colors.white),
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: const Color(0xFF0665A4),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(100),
+                                  child: Image.asset(
+                                    'images/PICNITO LOGO.jpeg',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
                               ),
                             ],
                           ),

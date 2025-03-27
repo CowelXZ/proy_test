@@ -347,6 +347,18 @@ app.post('/addConsumible', async (req, res) => {
   }
 });
 
+// Obtener todos los proveedores
+app.get('/getProveedores', async (req, res) => {
+  try {
+    const request = new sql.Request();
+    const result = await request.query('SELECT nombre FROM Proveedores');
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error('❌ Error al obtener proveedores:', error);
+    res.status(500).json({ message: 'Error al obtener proveedores' });
+  }
+});
+
 
 
 

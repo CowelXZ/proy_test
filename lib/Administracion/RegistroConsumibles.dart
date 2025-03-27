@@ -41,8 +41,9 @@ class _formularioState extends State<formulario> {
   File? _imagen;
   String dropdownValue = 'U';
 
-  List<String> _items = ["FEMSA", "SABRITAS", "VERDEVALLE"];
+  //List<String> _items = ["FEMSA", "SABRITAS", "VERDEVALLE"];
   String proveedor = '';
+  
 
   void guardarConsumible() async {
     final url = Uri.parse('http://localhost:3000/addConsumible');
@@ -89,23 +90,42 @@ class _formularioState extends State<formulario> {
   }
 
   Future<void> _seleccionarProveedores() async {
-    final String seleccionado = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Seleccion(
-          items: _items,
-          titulo: 'Selecciona un proveedor',
-        );
-      },
-    );
+  try {
+    final response = await http.get(Uri.parse('http://localhost:3000/getProveedores'));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      final List<String> proveedores = data.map((e) => e['nombre'].toString()).toList();
+      
+      final String seleccionado = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Seleccion(
+            items: proveedores,
+            titulo: 'Selecciona un proveedor',
+          );
+        },
+      );
 
-    if (seleccionado != null) {
-      setState(() {
-        proveedor = seleccionado;
-        proveedorController.text = proveedor;
-      });
+      if (seleccionado != null) {
+        setState(() {
+          proveedor = seleccionado;
+          proveedorController.text = proveedor;
+        });
+      }
+    } else {
+      throw Exception('Error al obtener proveedores');
     }
+  } catch (e) {
+    print('❌ Error al cargar proveedores: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('❌ Error al cargar proveedores: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

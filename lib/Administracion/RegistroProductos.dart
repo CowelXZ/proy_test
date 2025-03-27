@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
-
 import 'package:proy_test/Administracion/Multiseleccion.dart';
 import 'package:proy_test/HomeScreen.dart';
 
@@ -41,6 +40,7 @@ class _formularioState extends State<formulario> {
   File? _imagen;
   String dropdownValue = 'U';
   String dropdownValue2 = 'gr';
+  String? dropdownValue3;
 
   List<String> _consumibles = [
     "Maiz Palomero",
@@ -67,6 +67,22 @@ class _formularioState extends State<formulario> {
       }
     });
   }
+  void guardarFinta() {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('✅ Guardado Correctamente'),
+      backgroundColor: Colors.green,
+    ),
+  );
+
+  Future.delayed(const Duration(milliseconds: 500), () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  });
+}
+
 
   Future<void> _seleccionarConsumibles() async {
     final List<String> seleccionados = await showDialog(
@@ -138,7 +154,7 @@ class _formularioState extends State<formulario> {
               child: SingleChildScrollView(
                 child: Container(
                   width: 750,
-                  height: 550,
+                  height: 600,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: const Color(0xff081C42),
@@ -162,7 +178,8 @@ class _formularioState extends State<formulario> {
                               Row(
                                 children: [
                                   IconButton(
-                                    onPressed: () {Navigator.pushReplacement(
+                                    onPressed: () {
+                                      Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
@@ -282,7 +299,65 @@ class _formularioState extends State<formulario> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 25),
+                                    const SizedBox(height: 15),
+                                    const Text(
+                                      'Seleccionar Tamaño',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Container(
+                                      width: 250,
+                                      height: 35,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: DropdownButton<String>(
+                                        isExpanded: true,
+                                        value: dropdownValue3,
+                                        hint: const Padding(
+                                          padding: EdgeInsets.only(left: 10),
+                                          child: Text(
+                                            'Selecciona un tamaño',
+                                            style: TextStyle(
+                                                color: Color(0xff000000),
+                                                fontSize: 14),
+                                          ),
+                                        ),
+                                        items: <String>[
+                                          'PEQUEÑO',
+                                          'MEDIANAS',
+                                          'GRANDES',
+                                          'JUMBO',
+                                        ].map((String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 10),
+                                              child: Text(value),
+                                            ),
+                                          );
+                                        }).toList(),
+                                        onChanged: (String? value) {
+                                          setState(() {
+                                            dropdownValue3 = value;
+                                          });
+                                        },
+                                        icon: const Icon(Icons.arrow_drop_down,
+                                            color: Colors.black),
+                                        iconSize: 20,
+                                        elevation: 16,
+                                        underline: Container(
+                                          height: 0,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 15),
                                     const Text(
                                       'Tamaño de la Porcion',
                                       style: TextStyle(
@@ -358,7 +433,7 @@ class _formularioState extends State<formulario> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 25),
+                                    const SizedBox(height: 15),
                                     const Text(
                                       'Consumibles a usar',
                                       style: TextStyle(
@@ -524,7 +599,7 @@ class _formularioState extends State<formulario> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 25),
+                                    const SizedBox(height: 15),
                                     const Text(
                                       'Precio Unitario',
                                       style: TextStyle(
@@ -541,7 +616,6 @@ class _formularioState extends State<formulario> {
                                         borderRadius: BorderRadius.circular(5),
                                       ),
                                       child: TextField(
-                                        readOnly: true,
                                         cursorColor: const Color(0xff000000),
                                         style: const TextStyle(
                                             fontSize: 14,
@@ -555,7 +629,7 @@ class _formularioState extends State<formulario> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 25),
+                                    const SizedBox(height: 86),
                                     const Text(
                                       'Intermedios a usar',
                                       style: TextStyle(
@@ -696,7 +770,7 @@ class _formularioState extends State<formulario> {
                           height: 40,
                           width: 200,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: guardarFinta, // ✅ Solo hace la finta
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),

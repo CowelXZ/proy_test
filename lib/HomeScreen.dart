@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proy_test/Administracion/A%C3%B1adirFunciones.dart';
+import 'package:proy_test/Administracion/Extras.dart';
 import 'package:proy_test/Administracion/Funciones.dart';
 import 'package:proy_test/Administracion/Peliculas.dart';
 import 'package:proy_test/Administracion/RegistroCombos.dart';
@@ -42,6 +43,7 @@ class HomeScreen extends StatelessWidget {
               _buildMenuButton(context, 'Registro Intermedios', const Registrointermedios()),
               _buildMenuButton(context, 'Registro Productos', const Registroproductos()),
               _buildMenuButton(context, 'Registro Proveedores', const Rproveedores()),
+              _buildMenuButton(context, 'Registro Extras', const Extras()),
 
             ],
           ),
