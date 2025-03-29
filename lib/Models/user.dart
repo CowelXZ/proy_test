@@ -1,4 +1,4 @@
-class Usuario {
+/*class Usuario {
   final int id;
   final String nombre;
   final String apellidos;
@@ -32,3 +32,4 @@ class Usuario {
     );
   }
 }
+*/

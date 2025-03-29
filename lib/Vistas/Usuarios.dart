@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:proy_test/Administracion/RegistrarUsuario.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:proy_test/Vistas/RegistrarUsuario.dart';
 import 'package:proy_test/HomeScreen.dart';
+import 'package:proy_test/Controladores/user_controller.dart';
+import 'package:proy_test/Models/usuarios.dart';
 
 void main() {
   runApp(const Usuarios());
@@ -31,24 +30,29 @@ class ListaUsuarios extends StatefulWidget {
 }
 
 class _ListaUsuariosState extends State<ListaUsuarios> {
+  final UserController userController = UserController();
   final TextEditingController buscadorController = TextEditingController();
-  List<dynamic> usuarios = [];
-  List<dynamic> usuariosFiltrados = [];
+  List<User> usuarios = [];
+  List<User> usuariosFiltrados = [];
   String dropdownValue = 'Todos';
-  String formatearFecha(String? fecha) {
-    if (fecha == null || fecha.isEmpty) return 'No disponible';
-    try {
-      DateTime parsedDate = DateTime.parse(fecha);
-      return DateFormat('yyyy-MM-dd').format(parsedDate); // Solo YYYY-MM-DD
-    } catch (e) {
-      return 'Formato inválido';
-    }
-  }
 
   @override
   void initState() {
     super.initState();
     fetchUsuarios();
+  }
+
+  Future<void> fetchUsuarios() async {
+    usuarios = await userController.fetchUsuarios(dropdownValue);
+    setState(() {
+      usuariosFiltrados = usuarios;
+    });
+  }
+
+  void filtrarUsuarios(String query) {
+    setState(() {
+      usuariosFiltrados = userController.filtrarUsuarios(usuarios, query);
+    });
   }
 
   void _confirmarEliminacion(int userId) {
@@ -63,74 +67,37 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo sin hacer nada
+                Navigator.of(context).pop();
               },
               child: const Text("Cancelar"),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
-                _eliminarUsuario(userId);
+              onPressed: () async {
+                Navigator.of(context).pop();
+                bool eliminado = await userController.eliminarUsuario(userId);
+                if (eliminado) {
+                  fetchUsuarios();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Usuario eliminado exitosamente'),
+                      backgroundColor: Color(0xff14AE5C),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al eliminar usuario'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
-              child:
-                  const Text("Eliminar", style: TextStyle(color: Colors.red)),
+              child: const Text("Eliminar", style: TextStyle(color: Colors.red)),
             ),
           ],
         );
       },
     );
-  }
-
-  Future<void> _eliminarUsuario(int userId) async {
-    final url = Uri.parse('http://localhost:3000/deleteUser/$userId');
-    try {
-      final response = await http.delete(url);
-      if (response.statusCode == 200) {
-        setState(() {
-          usuarios.removeWhere((usuario) => usuario['id'] == userId);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuario eliminado exitosamente'),
-          backgroundColor: Color(0xff14AE5C),
-          ),
-        );
-      } else {
-        print("Error al eliminar usuario: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Excepción atrapada: $e");
-    }
-  }
-
-  Future<void> fetchUsuarios() async {
-    final url = Uri.parse(
-        'http://localhost:3000/getUsers?orderBy=Departamento&departamento=$dropdownValue');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        setState(() {
-          usuarios = json.decode(response.body);
-          usuariosFiltrados = usuarios;
-        });
-      } else {
-        print("Error al cargar los usuarios: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Excepción atrapada: $e");
-    }
-  }
-
-  void filtrarUsuarios(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        usuariosFiltrados = usuarios;
-      } else {
-        usuariosFiltrados = usuarios.where((usuario) {
-          final nombre = usuario['nombre_completo']?.toString().toLowerCase() ?? '';
-          return nombre.contains(query.toLowerCase());
-        }).toList();
-      }
-    });
   }
 
   @override
@@ -151,7 +118,6 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  //cumpleaños
                   Row(
                     children: [
                       IconButton(
@@ -194,8 +160,7 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        onChanged:
-                            filtrarUsuarios, // 🔥 Llamamos a la función de filtrado
+                        onChanged: filtrarUsuarios,
                       ),
                     ),
                   ),
@@ -212,8 +177,7 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                       DropdownButton<String>(
                         dropdownColor: const Color(0xFF022044),
                         value: dropdownValue,
-                        icon: const Icon(Icons.arrow_drop_down,
-                            color: Colors.white),
+                        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                         iconSize: 24,
                         elevation: 16,
                         style: const TextStyle(color: Colors.white),
@@ -241,7 +205,6 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                       ),
                     ],
                   ),
-
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: const Color(0xFF0665A4),
@@ -275,24 +238,22 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                   ],
                   rows: usuariosFiltrados.map<DataRow>((usuario) {
                     return DataRow(cells: [
-                      DataCell(Text(usuario['nombre_completo'] ?? 'No disponible')),
-                      DataCell(Text(usuario['departamento'] ?? 'No disponible')),
-                      DataCell(Text(usuario['telefono'] ?? 'No disponible')),
-                      DataCell(Text(usuario['usuario'] ?? 'No disponible')),
-                      DataCell(Text(formatearFecha(usuario['cumpleanos']))),
-                      DataCell(Text(usuario['rfc'] ?? 'No disponible')),
+                      DataCell(Text(usuario.nombreCompleto)),
+                      DataCell(Text(usuario.departamento)),
+                      DataCell(Text(usuario.telefono)),
+                      DataCell(Text(usuario.usuario)),
+                      DataCell(Text(userController.formatearFecha(usuario.cumpleanos))),
+                      DataCell(Text(usuario.rfc)),
                       DataCell(
                         Row(
                           children: [
                             IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.white),
-                                onPressed: () {}),
+                              icon: const Icon(Icons.edit, color: Colors.white),
+                              onPressed: () {},
+                            ),
                             IconButton(
-                              icon:
-                                  const Icon(Icons.delete, color: Colors.white),
-                              onPressed: () =>
-                                  _confirmarEliminacion(usuario['id']),
+                              icon: const Icon(Icons.delete, color: Colors.white),
+                              onPressed: () => _confirmarEliminacion(usuario.id),
                             ),
                           ],
                         ),
@@ -313,11 +274,7 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                       MaterialPageRoute(
                         builder: (context) => const RegistroU(),
                       ),
-                    ).then((value) {
-                      setState(() {
-                        fetchUsuarios();
-                      });
-                    });
+                    ).then((value) => fetchUsuarios());
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff14AE5C),

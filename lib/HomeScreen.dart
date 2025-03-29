@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:proy_test/Administracion/A%C3%B1adirFunciones.dart';
-import 'package:proy_test/Administracion/Extras.dart';
-import 'package:proy_test/Administracion/Funciones.dart';
-import 'package:proy_test/Administracion/Peliculas.dart';
-import 'package:proy_test/Administracion/RegistroCombos.dart';
-import 'package:proy_test/Administracion/RegistroConsumibles.dart';
-import 'package:proy_test/Administracion/RegistroIntermedios.dart';
-import 'package:proy_test/Administracion/RegistroProductos.dart';
-import 'package:proy_test/Administracion/RegistroProovedores.dart';
-import 'package:proy_test/Administracion/Usuarios.dart';
-import 'package:proy_test/Administracion/RegistrarPeliculas.dart';
+import 'package:proy_test/Vistas/A%C3%B1adirFunciones.dart';
+import 'package:proy_test/Vistas/Extras.dart';
+import 'package:proy_test/Vistas/Funciones.dart';
+import 'package:proy_test/Vistas/Peliculas.dart';
+import 'package:proy_test/Vistas/RegistroCombos.dart';
+import 'package:proy_test/Vistas/RegistroConsumibles.dart';
+import 'package:proy_test/Vistas/RegistroIntermedios.dart';
+import 'package:proy_test/Vistas/RegistroProductos.dart';
+import 'package:proy_test/Vistas/RegistroProovedores.dart';
+import 'package:proy_test/Vistas/Usuarios.dart';
+import 'package:proy_test/Vistas/RegistrarPeliculas.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

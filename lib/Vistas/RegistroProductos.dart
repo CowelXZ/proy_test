@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
-import 'package:proy_test/Administracion/Multiseleccion.dart';
+import 'package:proy_test/Vistas/Multiseleccion.dart';
 import 'package:proy_test/HomeScreen.dart';
 
 void main() {

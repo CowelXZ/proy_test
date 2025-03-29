@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:proy_test/Controladores/user_controller.dart';
+import 'package:proy_test/Models/usuarios.dart';
 
 class RegistroU extends StatefulWidget {
   const RegistroU({super.key});
@@ -28,153 +28,23 @@ class _RegistroUState extends State<RegistroU> {
     'Limpieza'
   ];
 
-  void _mostrarMensaje(String mensaje, {Color color = Colors.red}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mensaje),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  Future<void> _seleccionarFecha() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      confirmText: "Aceptar",
-      cancelText: "Cancelar",
-      helpText: "Seleccionar fecha",
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xff14AE5C),
-              onPrimary: Colors.white,
-              surface: Color(0xFF022044),
-              onSurface: Colors.white,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: ButtonStyle(
-                foregroundColor: WidgetStateProperty.all(Color(0xff14AE5C)),
-              ),
-            ),
-            dialogTheme: DialogTheme(backgroundColor: Color(0xFF022044)),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      setState(() {
-        fechaController.text = DateFormat('yyyy-MM-dd').format(picked);
-      });
-    }
-  }
-
-  Future<void> saveUser() async {
-    final nombre = nombreController.text.trim();
-    final apellidos = apellidosController.text.trim();
-    final telefono = telefonoController.text.trim();
-    final rfc = rfcController.text.trim();
-    final usuario = usuarioController.text.trim();
-    final contrasena = contrasenaController.text;
-    final confirmarContrasena = confirmarContrasenaController.text;
-    final cumpleanos = fechaController.text.trim();
-
-    if ([nombre, apellidos, telefono, rfc, usuario, contrasena, cumpleanos]
-        .any((element) => element.isEmpty)) {
-      _mostrarMensaje("Todos los campos son obligatorios.");
-      return;
-    }
-
-    final RegExp regexTelefono = RegExp(r'^[0-9]+$'); // Solo números
-    if (!regexTelefono.hasMatch(telefono)) {
-      _mostrarMensaje("El teléfono solo debe contener números.");
-      return;
-    }
-
-    final RegExp regexRFC =
-        RegExp(r'^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$'); // Formato RFC
-    if (!regexRFC.hasMatch(rfc)) {
-      _mostrarMensaje("El RFC no tiene un formato válido.");
-      return;
-    }
-
-    if (contrasena.length < 6) {
-      _mostrarMensaje("La contraseña debe tener al menos 6 caracteres.");
-      return;
-    }
-
-    if (contrasena != confirmarContrasena) {
-      _mostrarMensaje("Las contraseñas no coinciden. Intenta de nuevo.",
-          color: Colors.orange);
-      confirmarContrasenaController.clear();
-      return;
-    }
-
-    try {
-      DateTime.parse(cumpleanos);
-    } catch (e) {
-      _mostrarMensaje("Formato de fecha inválido. Usa YYYY-MM-DD.");
-      return;
-    }
-
-    final Map<String, String> userData = {
-      'nombre': nombre,
-      'apellidos': apellidos,
-      'telefono': telefono,
-      'rfc': rfc,
-      'usuario': usuario,
-      'contrasena': contrasena,
-      'cumpleanos': cumpleanos,
-      'departamento': departamento,
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse('http://localhost:3000/addUser'),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode(userData),
-      );
-
-      if (response.statusCode == 201) {
-        _mostrarMensaje("Usuario guardado con éxito", color: Colors.green);
-        await Future.delayed(
-            const Duration(seconds: 2)); // Espera a que se vea el mensaje
-        if (mounted)
-          Navigator.pop(context); // Cierra la ventana solo si sigue abierta
-      } else {
-        _mostrarMensaje("Error al guardar usuario: ${response.body}");
-      }
-    } catch (error) {
-      _mostrarMensaje("Error de conexión: $error");
-    }
-  }
-
   Widget textFields(String label, TextEditingController controller,
-      {bool obscureText = false, TextInputType? keyboardType}) {
+      {bool obscureText = false,
+      TextInputType keyboardType = TextInputType.text}) {
     return TextField(
-      style: const TextStyle(color: Colors.black),
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
-        fillColor: Colors.white,
-        filled: true,
         labelText: label,
-        floatingLabelStyle: const TextStyle(
-            color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 15),
         labelStyle: const TextStyle(color: Colors.grey),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.black, width: 1)),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.black, width: 1)),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: const BorderSide(color: Colors.black),
+        ),
       ),
     );
   }
@@ -211,7 +81,7 @@ class _RegistroUState extends State<RegistroU> {
               child: SingleChildScrollView(
                 child: Container(
                   width: 750,
-                  height: 550, // Adjusted height to fit the form
+                  height: 550,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: const Color(0xff081C42),
@@ -347,7 +217,11 @@ class _RegistroUState extends State<RegistroU> {
                                                 SystemMouseCursors.click,
                                             controller: fechaController,
                                             readOnly: true,
-                                            onTap: _seleccionarFecha,
+                                            onTap: () async {
+                                              await UserController()
+                                                  .seleccionarFecha(
+                                                      context, fechaController);
+                                            },
                                             decoration: const InputDecoration(
                                               hintText: 'Fecha de nacimiento',
                                               hintStyle: TextStyle(
@@ -367,16 +241,6 @@ class _RegistroUState extends State<RegistroU> {
                                     ],
                                   ),
                                   const SizedBox(height: 30),
-                                  /*ElevatedButton(
-                                    onPressed: saveUser,
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xff14AE5C),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 50, vertical: 15)),
-                                    child: const Text('Guardar Usuario',
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 16)),
-                                  ),*/
                                 ],
                               );
                             },
@@ -390,7 +254,24 @@ class _RegistroUState extends State<RegistroU> {
                           height: 40,
                           width: 250,
                           child: ElevatedButton(
-                            onPressed: saveUser,
+                            onPressed: () async {
+                              final user = User(
+                                id: 0,
+                                nombreCompleto: nombreController.text,
+                                apellidos: apellidosController.text,
+                                telefono: telefonoController.text,
+                                usuario: usuarioController.text,
+                                cumpleanos: fechaController.text,
+                                rfc: rfcController.text,
+                                departamento: departamento,
+                              );
+                              await UserController().saveUser(
+                                context,
+                                user,
+                                contrasenaController.text,
+                                confirmarContrasenaController.text,
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),

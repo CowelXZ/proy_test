@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:proy_test/Administracion/Peliculas.dart';
+import 'package:proy_test/Vistas/Peliculas.dart';
 import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
 import 'package:proy_test/Services/Multiseleccion.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:proy_test/Administracion/RegistrarPeliculas.dart';
+import 'package:proy_test/Vistas/RegistrarPeliculas.dart';
 import 'package:proy_test/HomeScreen.dart';
 
 void main() {
@@ -42,39 +42,41 @@ class _PeliculasState extends State<Peliculas> {
   }
 
   void eliminarPelicula(int id) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('http://localhost:3000/deleteMovie/$id'),
+  try {
+    final response = await http.delete(
+      Uri.parse('http://localhost:3000/deleteMovie/$id'),
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Película eliminada con éxito'),
+          backgroundColor: Colors.green,
+        ),
       );
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Película eliminada con éxito'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        setState(() {
-          peliculas.removeWhere((pelicula) => pelicula['id'] == id);
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al eliminar la película'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
+      setState(() {
+        peliculas.removeWhere((pelicula) => pelicula['id'] == id);
+        peliculasFiltradas = List.from(peliculas); // Actualizar la lista filtrada también
+      });
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error de conexión: $e'),
+        const SnackBar(
+          content: Text('Error al eliminar la película'),
           backgroundColor: Colors.red,
         ),
       );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error de conexión: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
+
   void _confirmarEliminacion(BuildContext context, int peliculaId) {
   showDialog(
     context: context,
