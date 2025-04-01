@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 import 'package:proy_test/Vistas/Peliculas.dart';
 import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
@@ -330,7 +332,7 @@ class _ListaPeliculasState extends State<ListaPeliculas> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const HomeScreen()),
+                                                const Menu()),
                                       );
                                     },
                                     icon: const Icon(Icons.arrow_back,
@@ -691,18 +693,6 @@ class _ListaPeliculasState extends State<ListaPeliculas> {
                                         ),
                                       ),
                                     ),
-                                    /*const SizedBox(height: 20),
-                                    Container(
-                                      height: 40,
-                                      width: 200,
-                                      child: ElevatedButton(
-                                        onPressed: guardarPelicula,
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xff14AE5C)),
-                                        child: const Text("Guardar Película",
-                                            style: TextStyle(color: Color(0xffF5F5F5))),
-                                      ),
-                                    ),*/
                                   ],
                                 )
                               ],

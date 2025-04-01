@@ -1,10 +1,47 @@
 const express = require('express');
-const { connectDB, sql } = require('./db'); // Importar SQL correctamente
+const app = express();
+const { connectDB, sql, config } = require('./db');
 const bodyParser = require('body-parser');
 const fs = require('fs'); // ✅ Importar módulo para manejar archivos
-const app = express();
+
+
+app.use(express.json()); // Middleware para analizar JSON
+
+// Definición de rutas...
+
 const PORT = 3000;
 app.use('/uploads', express.static('uploads'));
+
+
+//WAAAAA
+
+app.use(express.json());
+
+app.post('/login', async (req, res) => {
+  const { usuario, contrasena } = req.body;
+
+  if (!usuario || !contrasena) {
+    return res.status(400).json({ message: 'Usuario y contraseña son requeridos' });
+  }
+//add
+  try {
+    const pool = await sql.connect(config);
+    const result = await pool.request()
+  .input('usuario', sql.NVarChar, usuario)
+  .input('contrasena', sql.NVarChar, contrasena)
+  .query('SELECT TOP 1 * FROM Usuarios WHERE usuario = @usuario AND contrasena = @contrasena');
+    console.log("📡 Resultado de la consulta:", result.recordset); // ✅ Verificar el resultado de la consulta
+    if (result.recordset.length > 0) {
+      res.status(200).json({ valido: true, message: 'Autenticación exitosa' });
+    } else {
+      res.status(401).json({ valido: false, message: 'Usuario o contraseña inválidos' });
+    }
+  } catch (err) {
+    console.error('Error en la consulta:', err);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 
 // Conectar a la base de datos con manejo de errores
 connectDB().catch((err) => {
@@ -19,6 +56,10 @@ app.use(bodyParser.json());
 app.get('/', (req, res) => {
   res.send('API con Node.js y SQL Server funcionando 🚀');
 });
+
+
+
+
 
 // ✅ Agregar un usuario
 app.post('/addUser', async (req, res) => {
@@ -347,6 +388,21 @@ app.post('/addConsumible', async (req, res) => {
   }
 });
 
+// Obtener todos los consumibles
+app.get('/getConsumibles', async (req, res) => {
+  try {
+    const request = new sql.Request();
+    const result = await request.query('SELECT nombre FROM Consumibles');
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error('Error al obtener consumibles:', error);
+    res.status(500).json({ message: 'Error al obtener consumibles' });
+  }
+});
+
+
+
+
 // Obtener todos los proveedores
 app.get('/getProveedores', async (req, res) => {
   try {
@@ -358,6 +414,53 @@ app.get('/getProveedores', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener proveedores' });
   }
 });
+
+app.post('/addIntermedio', async (req, res) => {
+  try {
+    const { nombre, imagen, cantidad_producida, unidad, costo_total_estimado, consumibles_usados } = req.body;
+
+    if (!nombre || !cantidad_producida || !unidad || !costo_total_estimado || !consumibles_usados) {
+      return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
+    }
+
+    // Insertar en la tabla Intermedios
+    const request = new sql.Request();
+    request.input('nombre', sql.NVarChar, nombre);
+    request.input('imagen', sql.NVarChar, imagen || null);
+    request.input('cantidad_producida', sql.Float, cantidad_producida);
+    request.input('unidad', sql.NVarChar, unidad);
+    request.input('costo_total_estimado', sql.Float, costo_total_estimado);
+
+    const result = await request.query(`
+      INSERT INTO Intermedios (nombre, imagen, cantidad_producida, unidad, costo_total_estimado)
+      OUTPUT INSERTED.id
+      VALUES (@nombre, @imagen, @cantidad_producida, @unidad, @costo_total_estimado)
+    `);
+
+    const intermedioId = result.recordset[0].id;
+
+    // Insertar consumibles usados
+    for (const c of consumibles_usados) {
+      const reqC = new sql.Request();
+      reqC.input('intermedio_id', sql.Int, intermedioId);
+      reqC.input('nombre', sql.NVarChar, c.nombre);
+      reqC.input('cantidad_usada', sql.Float, c.cantidad_usada);
+      await reqC.query(`
+        INSERT INTO Intermedios_Consumibles (intermedio_id, nombre, cantidad_usada)
+        VALUES (@intermedio_id, @nombre, @cantidad_usada)
+      `);
+    }
+
+    res.status(201).json({ message: '✅ Intermedio guardado exitosamente' });
+  } catch (error) {
+    console.error('❌ Error al guardar intermedio:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+
+
+
 
 
 

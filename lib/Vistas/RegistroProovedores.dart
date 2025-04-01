@@ -1,72 +1,41 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'dart:io';
+import 'package:proy_test/Controladores/proovedor_controller.dart';
+import 'package:proy_test/Models/proovedor_model.dart';
+import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/Menu.dart';
+import '../HomeScreen.dart';
 
-import 'package:proy_test/HomeScreen.dart';
-
-void main() {
-  runApp(const Rproveedores());
-}
-
-class Rproveedores extends StatelessWidget {
-  const Rproveedores({super.key});
+class RegistroProveedoresView extends StatefulWidget {
+  const RegistroProveedoresView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: formulario(),
-      ),
-    );
-  }
+  _RegistroProveedoresViewState createState() => _RegistroProveedoresViewState();
 }
 
-class formulario extends StatefulWidget {
-  const formulario({super.key});
-
-  @override
-  _formularioState createState() => _formularioState();
-}
-
-class _formularioState extends State<formulario> {
+class _RegistroProveedoresViewState extends State<RegistroProveedoresView> {
   final correoController = TextEditingController();
   final nombreController = TextEditingController();
   final telefonoController = TextEditingController();
   final direccionController = TextEditingController();
   final rfcController = TextEditingController();
 
-  void guardarProveedor() async {
-    final url = Uri.parse('http://localhost:3000/addProveedor');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'nombre': nombreController.text,
-        'correo': correoController.text,
-        'telefono': telefonoController.text,
-        'direccion': direccionController.text,
-        'rfc': rfcController.text,
-      }),
-    );
+  late final ProveedorController _proveedorController;
 
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Proveedor agregado con éxito'),
-        backgroundColor: Color.fromARGB(255, 0, 255, 0),),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ Error al agregar proveedor')),
-      );
-    }
+  @override
+  void initState() {
+    super.initState();
+    _proveedorController = ProveedorController(context);
+  }
+
+  void _guardarProveedor() {
+    final proveedor = Proveedor(
+      nombre: nombreController.text,
+      correo: correoController.text,
+      telefono: telefonoController.text,
+      direccion: direccionController.text,
+      rfc: rfcController.text,
+    );
+    _proveedorController.guardarProveedor(proveedor);
   }
 
   @override
@@ -85,12 +54,12 @@ class _formularioState extends State<formulario> {
         child: Column(
           children: [
             const Padding(
-                padding: const EdgeInsets.only(top: 10),
+                padding: EdgeInsets.only(top: 10),
                 child: Center(
                   child: Text(
                     'Registro de Proveedores',
                     style: TextStyle(
-                      color: const Color(0xffF5F5F5),
+                      color: Color(0xffF5F5F5),
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
                     ),
@@ -130,8 +99,8 @@ class _formularioState extends State<formulario> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const HomeScreen()),
-                                      );
+                                                const Menu()),
+                                      );//HomeScreen
                                     },
                                     icon: const Icon(Icons.arrow_back,
                                         color:
@@ -333,7 +302,7 @@ class _formularioState extends State<formulario> {
                           height: 40,
                           width: 200,
                           child: ElevatedButton(
-                            onPressed: guardarProveedor,
+                            onPressed: _guardarProveedor,
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),

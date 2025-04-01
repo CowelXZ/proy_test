@@ -7,6 +7,8 @@ import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
 
 import 'package:proy_test/Services/Seleccion.dart';
+import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 
 void main() {
   runApp(const Registroconsumibles());
@@ -67,7 +69,7 @@ class _formularioState extends State<formulario> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const Menu()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -188,7 +190,7 @@ class _formularioState extends State<formulario> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const HomeScreen()),
+                                                const Menu()),
                                       );
                                     },
                                     icon: const Icon(Icons.arrow_back,
@@ -484,3 +486,4 @@ class _formularioState extends State<formulario> {
     );
   }
 }
+

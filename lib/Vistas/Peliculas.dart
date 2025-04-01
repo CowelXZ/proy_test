@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 import 'dart:convert';
 
 import 'package:proy_test/Vistas/RegistrarPeliculas.dart';
@@ -308,7 +310,7 @@ void _eliminarPelicula(int id) async {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => const HomeScreen()),
+                                      builder: (context) => const Menu()),
                                 );
                               },
                             ),
@@ -321,7 +323,7 @@ void _eliminarPelicula(int id) async {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
+                          ],//Atras
                         ),
                         SizedBox(
                           width: MediaQuery.of(context).size.width * 0.4,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 import 'dart:io';
 
 import 'package:proy_test/Vistas/Multiseleccion.dart';
@@ -32,68 +33,80 @@ class formulario extends StatefulWidget {
 }
 
 class _formularioState extends State<formulario> {
-  final consumiblesController = TextEditingController();
-  final nombreController = TextEditingController();
-  final stockController = TextEditingController();
-  final costoController = TextEditingController();
-  final cConsumiblesController = TextEditingController();
+  final TextEditingController nombreController = TextEditingController();
+  final TextEditingController stockController = TextEditingController();
+  final TextEditingController costoController = TextEditingController();
+  final TextEditingController consumiblesController = TextEditingController();
+
   File? _imagen;
   String dropdownValue = 'U';
 
-  List<String> _consumibles = [
-    "Maiz Palomero",
+  final List<String> _unidades = ['U', 'Kg', 'L'];
+  final List<String> _consumiblesDisponibles = [
+    "Maíz Palomero",
     "Mantequilla",
     "Queso Amarillo"
   ];
-  List<String> _consumiblesSeleccionados = [];
-
-  void guardarFinta() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ Guardado Correctamente'),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    // Simular un pequeño delay antes de cambiar la pantalla
-    Future.delayed(const Duration(milliseconds: 500), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    });
-  }
+  final Map<String, TextEditingController> _consumiblesSeleccionados = {};
 
   Future<void> _seleccionarImagen() async {
-    final imgSeleccionada =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (imgSeleccionada != null) {
-        _imagen = File(imgSeleccionada.path);
-      } else {
-        Exception('No image selected.');
-      }
-    });
+    final ImagePicker picker = ImagePicker();
+    final XFile? imagenSeleccionada =
+        await picker.pickImage(source: ImageSource.gallery);
+    if (imagenSeleccionada != null) {
+      setState(() {
+        _imagen = File(imagenSeleccionada.path);
+      });
+    }
   }
 
   Future<void> _seleccionarConsumibles() async {
-    final List<String> seleccionados = await showDialog(
+    final List<String>? seleccionados = await showDialog<List<String>>(
       context: context,
       builder: (BuildContext context) {
         return MultiSelectDialog(
-          items: _consumibles,
-          initialSelectedItems: _consumiblesSeleccionados,
+          items: _consumiblesDisponibles,
+          initialSelectedItems: _consumiblesSeleccionados.keys.toList(),
           titulo: 'Seleccione los consumibles a usar',
         );
       },
     );
+
     if (seleccionados != null) {
       setState(() {
-        _consumiblesSeleccionados = seleccionados;
-        //consumiblesController.text = _consumiblesSeleccionados.join(', ');
+        _consumiblesSeleccionados.clear();
+        for (var consumible in seleccionados) {
+          _consumiblesSeleccionados[consumible] = TextEditingController();
+        }
       });
     }
+  }
+
+  void _guardarIntermedio() {
+    if (nombreController.text.isEmpty ||
+        stockController.text.isEmpty ||
+        costoController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('❌ Todos los campos deben estar completos')),
+      );
+      return;
+    }
+
+    final double? stock = double.tryParse(stockController.text);
+    final double? costo = double.tryParse(costoController.text);
+    if (stock == null || costo == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❌ Valores numéricos inválidos')),
+      );
+      return;
+    }
+
+    // Aquí puedes hacer tu POST al backend con todos los datos
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('✅ Intermedio guardado correctamente')),
+    );
   }
 
   @override
@@ -156,8 +169,7 @@ class _formularioState extends State<formulario> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) =>
-                                                const HomeScreen()),
+                                            builder: (context) => const Menu()),
                                       );
                                     },
                                     icon: const Icon(Icons.arrow_back,
@@ -258,11 +270,10 @@ class _formularioState extends State<formulario> {
                                         borderRadius: BorderRadius.circular(5),
                                       ),
                                       child: TextField(
-                                        cursorColor: const Color(0xff000000),
-                                        style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Color(0xff000000)),
                                         controller: nombreController,
+                                        cursorColor: Colors.black,
+                                        style: const TextStyle(
+                                            color: Colors.black),
                                         decoration: const InputDecoration(
                                           border: InputBorder.none,
                                           contentPadding: EdgeInsets.only(
@@ -270,7 +281,7 @@ class _formularioState extends State<formulario> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 50),
+                                    const SizedBox(height: 30),
                                     const Text(
                                       'Consumibles a usar',
                                       style: TextStyle(
@@ -287,22 +298,19 @@ class _formularioState extends State<formulario> {
                                         borderRadius: BorderRadius.circular(5),
                                       ),
                                       child: TextField(
-                                        mouseCursor: SystemMouseCursors.click,
-                                        onTap: () {
-                                          _seleccionarConsumibles();
-                                        },
-                                        readOnly: true,
                                         controller: consumiblesController,
+                                        readOnly: true,
+                                        onTap: _seleccionarConsumibles,
                                         decoration: const InputDecoration(
-                                            hintText:
-                                                'Selecciona los consumibles',
-                                            hintStyle: TextStyle(
-                                                color: Color(0xff000000),
-                                                fontSize: 14),
-                                            border: InputBorder.none,
-                                            contentPadding: EdgeInsets.only(
-                                                left: 10, bottom: 10),
-                                            prefixIcon: Icon(Icons.inventory)),
+                                          prefixIcon: Icon(Icons.inventory),
+                                          hintText:
+                                              'Selecciona los consumibles',
+                                          hintStyle:
+                                              TextStyle(color: Colors.black54),
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.only(
+                                              left: 10, bottom: 10),
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -324,79 +332,68 @@ class _formularioState extends State<formulario> {
                                       child: SingleChildScrollView(
                                         child: Column(
                                           children: _consumiblesSeleccionados
-                                              .map((consumible) => ListTile(
-                                                    title: Text(
-                                                      consumible,
+                                              .entries
+                                              .map((entry) {
+                                            final consumible = entry.key;
+                                            final controller = entry.value;
+                                            return ListTile(
+                                              title: Text(consumible,
+                                                  style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                              trailing: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Container(
+                                                    width: 50,
+                                                    height: 35,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      border: Border.all(
+                                                          color: Colors.black),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                    child: TextField(
+                                                      controller: controller,
+                                                      keyboardType:
+                                                          TextInputType.number,
                                                       style: const TextStyle(
-                                                          color: Colors.black,
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold),
+                                                          color: Colors.black),
+                                                      decoration:
+                                                          const InputDecoration(
+                                                        border:
+                                                            InputBorder.none,
+                                                        contentPadding:
+                                                            EdgeInsets.only(
+                                                                left: 10,
+                                                                bottom: 10),
+                                                      ),
                                                     ),
-                                                    trailing: Row(
-                                                      // mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Container(
-                                                          width: 40,
-                                                          height: 35,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            border: Border.all(
-                                                                color: Colors
-                                                                    .black),
-                                                            color: Colors.white,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        5),
-                                                          ),
-                                                          child: TextField(
-                                                            //controller: cConsumiblesController,
-                                                            cursorColor:
-                                                                const Color(
-                                                                    0xff000000),
-                                                            style: const TextStyle(
-                                                                fontSize: 14,
-                                                                color: Color(
-                                                                    0xff000000)),
-                                                            decoration:
-                                                                const InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              contentPadding:
-                                                                  EdgeInsets.only(
-                                                                      left: 10,
-                                                                      bottom:
-                                                                          10),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 6),
-                                                        const Text("Unidad"),
-                                                        IconButton(
-                                                          icon: const Icon(
-                                                              Icons.delete,
-                                                              color: Colors.red,
-                                                              size: 24),
-                                                          onPressed: () {
-                                                            setState(() {
-                                                              _consumiblesSeleccionados
-                                                                  .remove(
-                                                                      consumible);
-                                                            });
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ))
-                                              .toList(),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  const Text("Unidad"),
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                        Icons.delete,
+                                                        color: Colors.red,
+                                                        size: 24),
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        _consumiblesSeleccionados
+                                                            .remove(consumible);
+                                                      });
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
                                         ),
                                       ),
-                                    )
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(width: 15),
@@ -521,17 +518,14 @@ class _formularioState extends State<formulario> {
                           height: 40,
                           width: 200,
                           child: ElevatedButton(
-                            onPressed: guardarFinta, // ✅ Solo hace la finta
+                            onPressed: _guardarIntermedio,
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
+                                  borderRadius: BorderRadius.circular(5)),
                               backgroundColor: const Color(0xff14AE5C),
                             ),
-                            child: const Text(
-                              'Guardar Intermedio',
-                              style: TextStyle(color: Color(0xffF5F5F5)),
-                            ),
+                            child: const Text('Guardar Intermedio',
+                                style: TextStyle(color: Color(0xffF5F5F5))),
                           ),
                         ),
                       ),

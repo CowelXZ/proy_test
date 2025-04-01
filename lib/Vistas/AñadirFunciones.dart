@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
 import 'package:proy_test/Services/Multiseleccion.dart';
+import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 import 'Funciones.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -61,6 +63,7 @@ class _FuncionesState extends State<Funciones> {
     }
 
     return "00:00:00"; // En caso de error
+    //Atras
   }
 
   Future<void> guardarFuncion() async {
@@ -275,7 +278,7 @@ Future<void> _seleccionarFecha() async {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const HomeScreen()),
+                                                const Menu()),
                                       );
                                     },
                                     icon: const Icon(Icons.arrow_back,

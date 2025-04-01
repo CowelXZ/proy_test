@@ -27,7 +27,7 @@ class _RegistroUState extends State<RegistroU> {
     'Cafeteria',
     'Limpieza'
   ];
-
+//HomeScreen
   Widget textFields(String label, TextEditingController controller,
       {bool obscureText = false,
       TextInputType keyboardType = TextInputType.text}) {

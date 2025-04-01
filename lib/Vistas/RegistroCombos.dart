@@ -4,6 +4,8 @@ import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
 
 import 'package:proy_test/Services/SeleccionconTarjetas.dart';
+import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 
 void main() {
   runApp(const Registrocombos());
@@ -153,7 +155,7 @@ class _formularioState extends State<formulario> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const HomeScreen()),
+                                                const Menu()),
                                       );
                                     },
                                     icon: const Icon(Icons.arrow_back,

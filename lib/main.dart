@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart'; // Importar el paquete
-import 'package:proy_test/HomeScreen.dart'; // Importar la pantalla de inicio
+import 'package:proy_test/HomeScreen.dart';
+import 'package:proy_test/Vistas/InicioSesion.dart'; // Importar la pantalla de inicio
 
 void main() {
   runApp(const MyApp());
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       ),
       title: "BTS",
       debugShowCheckedModeBanner: false,
-      home: const HomeScreen(), // Inicia en la pantalla de inicio
+      home: const InicioSesion(), // Inicia en la pantalla de inicio
     );
   }
 }

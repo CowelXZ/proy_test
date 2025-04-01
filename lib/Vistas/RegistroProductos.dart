@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:proy_test/Services/Multiseleccion.dart';
 import 'dart:io';
-import 'package:proy_test/Vistas/Multiseleccion.dart';
-import 'package:proy_test/HomeScreen.dart';
+
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:proy_test/Vistas/Menu.dart';
 
 void main() {
   runApp(const Registroproductos());
@@ -22,6 +26,19 @@ class Registroproductos extends StatelessWidget {
     );
   }
 }
+
+class Consumible {
+  final String nombre;
+
+  Consumible({required this.nombre});
+
+  factory Consumible.fromJson(Map<String, dynamic> json) {
+    return Consumible(
+      nombre: json['nombre'],
+    );
+  }
+}
+
 
 class formulario extends StatefulWidget {
   const formulario({super.key});
@@ -42,11 +59,8 @@ class _formularioState extends State<formulario> {
   String dropdownValue2 = 'gr';
   String? dropdownValue3;
 
-  List<String> _consumibles = [
-    "Maiz Palomero",
-    "Mantequilla",
-    "Queso Amarillo"
-  ];
+  List<String> _consumibles = [];
+
   List<String> _intermedios = [
     "Palomitas de Mantequilla",
     "Palomitas de Queso",
@@ -54,6 +68,18 @@ class _formularioState extends State<formulario> {
   ];
   List<String> _consumiblesSeleccionados = [];
   List<String> _intermediosSeleccionados = [];
+
+  Future<List<Consumible>> fetchConsumibles() async {
+    final response =
+        await http.get(Uri.parse('http://localhost:3000/getConsumibles'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Consumible.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los consumibles');
+    }
+  }
 
   Future<void> _seleccionarImagen() async {
     final imgSeleccionada =
@@ -67,23 +93,8 @@ class _formularioState extends State<formulario> {
       }
     });
   }
-  void guardarFinta() {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('✅ Guardado Correctamente'),
-      backgroundColor: Colors.green,
-    ),
-  );
 
-  Future.delayed(const Duration(milliseconds: 500), () {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
-  });
-}
-
-
+//Formulario
   Future<void> _seleccionarConsumibles() async {
     final List<String> seleccionados = await showDialog(
       context: context,
@@ -103,6 +114,21 @@ class _formularioState extends State<formulario> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    fetchConsumibles().then((consumibles) {
+      setState(() {
+        _consumibles = consumibles.map((c) => c.nombre).toList();
+      });
+    }).catchError((error) {
+      // Manejo de errores
+      print(error);
+    });
+  }
+
+  //Atras
+  //InitState
   Future<void> _seleccionarIntermedios() async {
     final List<String> seleccionados = await showDialog(
       context: context,
@@ -182,8 +208,7 @@ class _formularioState extends State<formulario> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) =>
-                                                const HomeScreen()),
+                                            builder: (context) => const Menu()),
                                       );
                                     },
                                     icon: const Icon(Icons.arrow_back,
@@ -449,23 +474,31 @@ class _formularioState extends State<formulario> {
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(5),
                                       ),
-                                      child: TextField(
-                                        mouseCursor: SystemMouseCursors.click,
-                                        onTap: () {
-                                          _seleccionarConsumibles();
+                                      child: DropdownButtonFormField<String>(
+                                        value: _consumiblesSeleccionados
+                                                .isNotEmpty
+                                            ? _consumiblesSeleccionados.first
+                                            : null,
+                                        hint: const Text(
+                                            'Selecciona un consumible'),
+                                        onChanged: (String? newValue) {
+                                          setState(() {
+                                            if (newValue != null &&
+                                                !_consumiblesSeleccionados
+                                                    .contains(newValue)) {
+                                              _consumiblesSeleccionados
+                                                  .add(newValue);
+                                            }
+                                          });
                                         },
-                                        readOnly: true,
-                                        controller: consumiblesController,
-                                        decoration: const InputDecoration(
-                                            hintText:
-                                                'Selecciona los consumibles',
-                                            hintStyle: TextStyle(
-                                                color: Color(0xff000000),
-                                                fontSize: 14),
-                                            border: InputBorder.none,
-                                            contentPadding: EdgeInsets.only(
-                                                left: 10, bottom: 10),
-                                            prefixIcon: Icon(Icons.inventory)),
+                                        items: _consumibles
+                                            .map<DropdownMenuItem<String>>(
+                                                (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -646,23 +679,19 @@ class _formularioState extends State<formulario> {
                                         borderRadius: BorderRadius.circular(5),
                                       ),
                                       child: TextField(
-                                        mouseCursor: SystemMouseCursors.click,
-                                        onTap: () {
-                                          _seleccionarIntermedios();
-                                        },
-                                        readOnly: true,
+                                        //Consumibles
+
+                                        onTap: () {},
                                         controller: intermediosController,
                                         decoration: const InputDecoration(
-                                            hintText:
-                                                'Selecciona los intermedios',
+                                            hintText: 'Buscar intermedios',
                                             hintStyle: TextStyle(
-                                                color: Color(0xff000000),
+                                                color: Colors.black54,
                                                 fontSize: 14),
                                             border: InputBorder.none,
                                             contentPadding: EdgeInsets.only(
                                                 left: 10, bottom: 10),
-                                            prefixIcon:
-                                                Icon(Icons.restaurant_menu)),
+                                            prefixIcon: Icon(Icons.search)),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -770,7 +799,7 @@ class _formularioState extends State<formulario> {
                           height: 40,
                           width: 200,
                           child: ElevatedButton(
-                            onPressed: guardarFinta, // ✅ Solo hace la finta
+                            onPressed: () {},
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),

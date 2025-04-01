@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 import 'package:proy_test/Vistas/RegistrarUsuario.dart';
 import 'package:proy_test/HomeScreen.dart';
 import 'package:proy_test/Controladores/user_controller.dart';
@@ -126,7 +128,7 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
+                                builder: (context) => const Menu()),
                           );
                         },
                       ),

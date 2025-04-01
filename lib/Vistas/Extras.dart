@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'dart:convert';
-
-import 'package:proy_test/HomeScreen.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   runApp(const Extras());
@@ -31,14 +29,22 @@ class ListaExtras extends StatefulWidget {
 
 class _ListaExtrasState extends State<ListaExtras> {
   final TextEditingController buscadorController = TextEditingController();
-  List<dynamic> usuarios = [];
-  List<dynamic> usuariosFiltrados = [];
-  String dropdownValue = 'FEMSA';
-  // String dropdownValue = 'Taquilla'; (Cambiar una vez corregida la base de datos)
+  final TextEditingController cantidadController = TextEditingController();
+  final TextEditingController nombreExtraController = TextEditingController();
+  final TextEditingController precioExtraController = TextEditingController();
+  File? _imagenExtra;
 
-  @override
-  void initState() {
-    super.initState();
+  Future<void> _seleccionarImagen() async {
+    final imgSeleccionada =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (imgSeleccionada != null) {
+        _imagenExtra = File(imgSeleccionada.path);
+      } else {
+        Exception('No image selected.');
+      }
+    });
   }
 
   @override
@@ -59,17 +65,12 @@ class _ListaExtrasState extends State<ListaExtras> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  //cumpleaños
                   Row(
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
                         onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
-                          );
+                          // Acción para regresar
                         },
                       ),
                       const SizedBox(width: 10),
@@ -83,30 +84,6 @@ class _ListaExtrasState extends State<ListaExtras> {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.45,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: TextField(
-                        controller: buscadorController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Buscar extra...',
-                          hintStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon:
-                              const Icon(Icons.search, color: Colors.white),
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.2),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onChanged: (String value) {}, // Implementar la búsqueda
-                      ),
-                    ),
-                  ),
-
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: const Color(0xFF0665A4),
@@ -132,13 +109,15 @@ class _ListaExtrasState extends State<ListaExtras> {
                   columns: const [
                     DataColumn(label: Text('Extra')),
                     DataColumn(label: Text('Precio')),
-                    DataColumn(label: Text('OPCIONES')),
+                    DataColumn(label: Text('Cantidad')),
+                    DataColumn(label: Text('Opciones')),
                   ],
                   rows: <DataRow>[
                     DataRow(
                       cells: <DataCell>[
                         DataCell(Text('Queso Adicional')),
                         DataCell(Text('10.00')),
+                        DataCell(Text('5')),
                         DataCell(
                           Row(
                             children: [
@@ -183,40 +162,97 @@ class _ListaExtrasState extends State<ListaExtras> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                style: const TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  labelText: 'Nombre del Extra',
-                                  labelStyle:
-                                      const TextStyle(color: Colors.white70),
-                                  filled: true,
-                                  fillColor: Colors.white.withOpacity(0.2),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide.none,
+                          content: SizedBox(
+                            height: 400, // Ajustar el tamaño del recuadro
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  controller: nombreExtraController,
+                                  style: const TextStyle(color: Colors.white),
+                                  decoration: InputDecoration(
+                                    labelText: 'Nombre del Extra',
+                                    labelStyle:
+                                        const TextStyle(color: Colors.white70),
+                                    filled: true,
+                                    fillColor: Colors.white.withOpacity(0.2),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide.none,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 16),
-                              TextField(
-                                style: const TextStyle(color: Colors.white),
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: 'Precio del Extra',
-                                  labelStyle:
-                                      const TextStyle(color: Colors.white70),
-                                  filled: true,
-                                  fillColor: Colors.white.withOpacity(0.2),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide.none,
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: precioExtraController,
+                                  style: const TextStyle(color: Colors.white),
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    labelText: 'Precio del Extra',
+                                    labelStyle:
+                                        const TextStyle(color: Colors.white70),
+                                    filled: true,
+                                    fillColor: Colors.white.withOpacity(0.2),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide.none,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: cantidadController,
+                                  style: const TextStyle(color: Colors.white),
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    labelText: 'Cantidad del Extra',
+                                    labelStyle:
+                                        const TextStyle(color: Colors.white70),
+                                    filled: true,
+                                    fillColor: Colors.white.withOpacity(0.2),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _imagenExtra == null
+                                    ? Container(
+                                        width: 130,
+                                        height: 130,
+                                        color: Colors.grey[300],
+                                        child: const Icon(Icons.image,
+                                            size: 100, color: Colors.grey),
+                                      )
+                                    : Image.file(
+                                        _imagenExtra!,
+                                        width: 130,
+                                        height: 130,
+                                        fit: BoxFit.contain,
+                                      ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  height: 40,
+                                  width: 130,
+                                  child: ElevatedButton(
+                                    onPressed: _seleccionarImagen,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xff434343),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Cargar Imagen',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xffF5F5F5)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           actions: [
                             TextButton(
@@ -230,6 +266,7 @@ class _ListaExtrasState extends State<ListaExtras> {
                             ),
                             ElevatedButton(
                               onPressed: () {
+                                // Guardar lógica aquí
                                 Navigator.of(context).pop();
                               },
                               style: ElevatedButton.styleFrom(

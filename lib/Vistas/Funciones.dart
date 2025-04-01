@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proy_test/HomeScreen.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 import 'AñadirFunciones.dart';
 import 'RegistrarPeliculas.dart';
 
@@ -21,7 +22,7 @@ class Funciones extends StatelessWidget {
   }
 }
 
-//Atras
+
 class ListaFunciones extends StatefulWidget {
   const ListaFunciones({super.key});
 
@@ -58,7 +59,7 @@ class _ListaFuncionesState extends State<ListaFunciones> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
+                                builder: (context) => const Menu()),
                           );
                         },
                       ),
