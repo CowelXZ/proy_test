@@ -38,7 +38,12 @@ class _InicioSesionState extends State<InicioSesion> {
         if (respuestaJson['valido'] == true) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Menu()),
+            MaterialPageRoute(
+              builder: (context) => Menu(
+                nombre: respuestaJson['usuario']['nombre'],
+                apellidos: respuestaJson['usuario']['apellidos'],
+              ),
+            ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

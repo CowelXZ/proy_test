@@ -3,9 +3,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:proy_test/Vistas/Menu.dart';
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:proy_test/Vistas/Multiseleccion.dart';
 import 'package:proy_test/HomeScreen.dart';
+import 'package:proy_test/Vistas/RegistroProductos.dart';
 
 void main() {
   runApp(const Registrointermedios());
@@ -25,6 +27,57 @@ class Registrointermedios extends StatelessWidget {
   }
 }
 
+class ConsumibleUsado {
+  final String nombre;
+  final double cantidadUsada;
+
+  ConsumibleUsado({required this.nombre, required this.cantidadUsada});
+
+  factory ConsumibleUsado.fromJson(Map<String, dynamic> json) {
+    return ConsumibleUsado(
+      nombre: json['nombre'],
+      cantidadUsada: json['cantidad_usada'].toDouble(),
+    );
+  }
+}
+
+class Intermedio {
+  final int id;
+  final String nombre;
+  final String? imagen;
+  final double cantidadProducida;
+  final String unidad;
+  final double costoTotalEstimado;
+  final List<ConsumibleUsado> consumibles;
+
+  Intermedio({
+    required this.id,
+    required this.nombre,
+    required this.imagen,
+    required this.cantidadProducida,
+    required this.unidad,
+    required this.costoTotalEstimado,
+    required this.consumibles,
+  });
+
+  factory Intermedio.fromJson(Map<String, dynamic> json) {
+    var listaConsumibles = (json['consumibles'] as List)
+        .map((item) => ConsumibleUsado.fromJson(item))
+        .toList();
+
+    return Intermedio(
+      id: json['id'],
+      nombre: json['nombre'],
+      imagen: json['imagen'],
+      cantidadProducida: json['cantidad_producida'].toDouble(),
+      unidad: json['unidad'],
+      costoTotalEstimado: json['costo_total_estimado'].toDouble(),
+      consumibles: listaConsumibles,
+    );
+  }
+}
+
+
 class formulario extends StatefulWidget {
   const formulario({super.key});
 
@@ -41,12 +94,33 @@ class _formularioState extends State<formulario> {
   File? _imagen;
   String dropdownValue = 'U';
 
+  List<Consumible> _consumiblesDisponibles = [];
+
+  Future<void> _fetchConsumibles() async {
+    try {
+      final response = await http.get(Uri.parse('URL_DE_TU_API/consumibles'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _consumiblesDisponibles =
+              data.map((json) => Consumible.fromJson(json)).toList();
+        });
+      } else {
+        // Manejo de errores
+      }
+    } catch (e) {
+      // Manejo de excepciones
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchConsumibles();
+  }
+
   final List<String> _unidades = ['U', 'Kg', 'L'];
-  final List<String> _consumiblesDisponibles = [
-    "Maíz Palomero",
-    "Mantequilla",
-    "Queso Amarillo"
-  ];
+
   final Map<String, TextEditingController> _consumiblesSeleccionados = {};
 
   Future<void> _seleccionarImagen() async {
@@ -65,7 +139,8 @@ class _formularioState extends State<formulario> {
       context: context,
       builder: (BuildContext context) {
         return MultiSelectDialog(
-          items: _consumiblesDisponibles,
+          items: _consumiblesDisponibles.map((c) => c.nombre).toList(),
+
           initialSelectedItems: _consumiblesSeleccionados.keys.toList(),
           titulo: 'Seleccione los consumibles a usar',
         );

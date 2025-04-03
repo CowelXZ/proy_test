@@ -23,17 +23,27 @@ app.post('/login', async (req, res) => {
   if (!usuario || !contrasena) {
     return res.status(400).json({ message: 'Usuario y contraseña son requeridos' });
   }
-//add
+  //add
   try {
     const pool = await sql.connect(config);
     const result = await pool.request()
-  .input('usuario', sql.NVarChar, usuario)
-  .input('contrasena', sql.NVarChar, contrasena)
-  .query('SELECT TOP 1 * FROM Usuarios WHERE usuario = @usuario AND contrasena = @contrasena');
+      .input('usuario', sql.NVarChar, usuario)
+      .input('contrasena', sql.NVarChar, contrasena)
+      .query('SELECT * FROM Usuarios WHERE usuario = @usuario AND contrasena = @contrasena');
     console.log("📡 Resultado de la consulta:", result.recordset); // ✅ Verificar el resultado de la consulta
     if (result.recordset.length > 0) {
-      res.status(200).json({ valido: true, message: 'Autenticación exitosa' });
-    } else {
+      const usuario = result.recordset[0];
+      res.status(200).json({
+        valido: true,
+        message: 'Autenticación exitosa',
+        usuario: {
+          nombre: usuario.nombre,
+          apellidos: usuario.apellidos,
+          usuario: usuario.usuario
+        }
+      });
+    }
+    else {
       res.status(401).json({ valido: false, message: 'Usuario o contraseña inválidos' });
     }
   } catch (err) {
@@ -163,7 +173,7 @@ app.delete('/deleteUser/:id', async (req, res) => {
     res.status(500).json({ message: 'Error al eliminar usuario' });
   }
 });
-
+"TOP"
 app.post('/addMovie', async (req, res) => {
   let { titulo, director, duracion, idiomas, subtitulos, genero, clasificacion, sinopsis, poster } = req.body;
 
@@ -188,7 +198,7 @@ app.post('/addMovie', async (req, res) => {
 
   try {
     console.log("✅ Insertando duración en SQL:", duracion);
-    
+
     const request = new sql.Request();
     request.input('titulo', sql.NVarChar, titulo);
     request.input('director', sql.NVarChar, director);
@@ -227,29 +237,29 @@ app.get('/getMovies', async (req, res) => {
 
 app.delete('/deleteMovie/:id', async (req, res) => {
   try {
-      const movieId = parseInt(req.params.id, 10);
+    const movieId = parseInt(req.params.id, 10);
 
-      if (isNaN(movieId)) {
-          return res.status(400).json({ message: 'ID de película inválido' });
-      }
+    if (isNaN(movieId)) {
+      return res.status(400).json({ message: 'ID de película inválido' });
+    }
 
-      const request = new sql.Request();
-      request.input('id', sql.Int, movieId);
+    const request = new sql.Request();
+    request.input('id', sql.Int, movieId);
 
-      const result = await request.query('DELETE FROM Peliculas WHERE id = @id');
+    const result = await request.query('DELETE FROM Peliculas WHERE id = @id');
 
-      if (result.rowsAffected[0] > 0) {
-          console.log(`✅ Película con ID ${movieId} eliminada`);
-          res.status(200).json({ message: 'Película eliminada con éxito' });
-      } else {
-          console.log(`⚠️ No se encontró la película con ID ${movieId}`);
-          res.status(404).json({ message: 'Película no encontrada' });
-      }
+    if (result.rowsAffected[0] > 0) {
+      console.log(`✅ Película con ID ${movieId} eliminada`);
+      res.status(200).json({ message: 'Película eliminada con éxito' });
+    } else {
+      console.log(`⚠️ No se encontró la película con ID ${movieId}`);
+      res.status(404).json({ message: 'Película no encontrada' });
+    }
   } catch (error) {
-      console.error('❌ Error al eliminar película:', error);
-      res.status(500).json({ message: 'Error al eliminar película' });
+    console.error('❌ Error al eliminar película:', error);
+    res.status(500).json({ message: 'Error al eliminar película' });
   }
-});app.post('/addFunction', async (req, res) => {
+}); app.post('/addFunction', async (req, res) => {
   try {
     let { titulo, horario, fecha, sala, tipo_sala, idioma, poster } = req.body;
 
@@ -458,11 +468,41 @@ app.post('/addIntermedio', async (req, res) => {
   }
 });
 
+app.get('/getIntermedios', async (req, res) => {
+  try {
+    const request = new sql.Request();
+    const result = await request.query(`
+      SELECT 
+        I.id,
+        I.nombre,
+        I.imagen,
+        I.cantidad_producida,
+        I.unidad,
+        I.costo_total_estimado,
+        (
+          SELECT 
+            nombre, 
+            cantidad_usada 
+          FROM Intermedios_Consumibles IC 
+          WHERE IC.intermedio_id = I.id 
+          FOR JSON PATH
+        ) AS consumibles
+      FROM Intermedios I
+      ORDER BY I.id DESC
+    `);
 
+    // Parsear los campos JSON de consumibles
+    const intermedios = result.recordset.map(row => ({
+      ...row,
+      consumibles: row.consumibles ? JSON.parse(row.consumibles) : []
+    }));
 
-
-
-
+    res.status(200).json(intermedios);
+  } catch (error) {
+    console.error("❌ Error al obtener intermedios:", error);
+    res.status(500).json({ message: 'Error al obtener intermedios' });
+  }
+});
 
 
 //Muerte Mentalconst fs = require('fs');
@@ -492,7 +532,7 @@ app.post('/uploadImage', upload.single('poster'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No se subió ninguna imagen" });
   }
-  
+
   const imageUrl = `http://localhost:3000/uploads/${req.file.filename}`;
   res.status(200).json({ imageUrl });
 });

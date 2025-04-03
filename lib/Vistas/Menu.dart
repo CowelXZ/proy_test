@@ -9,12 +9,15 @@ import 'package:proy_test/Vistas/RegistroProductos.dart';
 import 'package:proy_test/Vistas/RegistroProovedores.dart';
 import 'package:proy_test/Vistas/Usuarios.dart';
 
-void main() {
-  runApp(const Menu());
-}
-
 class Menu extends StatefulWidget {
-  const Menu({super.key});
+  final String nombre;
+  final String apellidos;
+
+  const Menu({
+    super.key,
+    this.nombre = 'Usuario',
+    this.apellidos = '',
+  });
 
   @override
   _MenuState createState() => _MenuState();
@@ -261,8 +264,8 @@ class _MenuState extends State<Menu> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Bienvenido Sr(a) Brandon Martinez Acuña',
+                          Text(
+                            'Bienvenido Sr(a) ${widget.nombre} ${widget.apellidos}',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

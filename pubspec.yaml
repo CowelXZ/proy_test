@@ -17,6 +17,7 @@ dependencies:
   bitsdojo_window: ^0.1.6
   flutter_launcher_icons: ^0.14.3
   eva_icons_flutter: ^3.1.0
+  dropdown_search: ^5.0.6
 
 dev_dependencies:
   flutter_test:
