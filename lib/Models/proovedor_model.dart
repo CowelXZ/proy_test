@@ -22,4 +22,6 @@ class Proveedor {
       'rfc': rfc,
     };
   }
+
+  static fromJson(p) {}
 }

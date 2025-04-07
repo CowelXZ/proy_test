@@ -3,6 +3,7 @@ import 'package:proy_test/Controladores/proovedor_controller.dart';
 import 'package:proy_test/Models/proovedor_model.dart';
 import 'package:proy_test/Vistas/InicioSesion.dart';
 import 'package:proy_test/Vistas/Menu.dart';
+import 'package:proy_test/Vistas/Proveedores.dart';
 import '../HomeScreen.dart';
 
 class RegistroProveedoresView extends StatefulWidget {
@@ -99,7 +100,7 @@ class _RegistroProveedoresViewState extends State<RegistroProveedoresView> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const Menu()),
+                                                const Proveedores()),
                                       );//HomeScreen
                                     },
                                     icon: const Icon(Icons.arrow_back,

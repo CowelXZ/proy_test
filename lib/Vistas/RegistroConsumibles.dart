@@ -7,8 +7,10 @@ import 'package:proy_test/HomeScreen.dart';
 import 'dart:io';
 
 import 'package:proy_test/Services/Seleccion.dart';
+import 'package:proy_test/Vistas/Consumibles.dart';
 import 'package:proy_test/Vistas/InicioSesion.dart';
 import 'package:proy_test/Vistas/Menu.dart';
+import 'package:proy_test/Vistas/RegistroProductos.dart';
 
 void main() {
   runApp(const Registroconsumibles());
@@ -69,7 +71,7 @@ class _formularioState extends State<formulario> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Menu()),
+        MaterialPageRoute(builder: (context) => const Consumibles()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,7 +192,7 @@ class _formularioState extends State<formulario> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const Menu()),
+                                                const Consumibles()),
                                       );
                                     },
                                     icon: const Icon(Icons.arrow_back,

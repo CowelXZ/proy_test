@@ -41,4 +41,38 @@ class ProveedorController {
       );
     }
   }
+
+  Future<List> fetchProveedores() async {
+    final url = Uri.parse('http://localhost:3000/getAllProveedores');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((p) {
+          try {
+            return Proveedor.fromJson(p);
+          } catch (e) {
+            print("⚠️ Error al parsear proveedor: $e");
+            return Proveedor(
+              nombre: 'Desconocido',
+              telefono: 'N/A',
+              correo: 'N/A',
+              direccion: 'N/A',
+              rfc: 'N/A',
+            );
+          }
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      print("❌ Error al obtener proveedores: $e");
+      return [];
+    }
+  }
+
+  List<Proveedor> filtrar(List<Proveedor> lista, String query) {
+    return lista
+        .where((p) => p.nombre.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+  }
 }

@@ -503,6 +503,45 @@ app.get('/getIntermedios', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener intermedios' });
   }
 });
+app.get('/getAllConsumibles', async (req, res) => {
+  try {
+    const request = new sql.Request();
+    const result = await request.query(`
+      SELECT 
+        nombre,
+        proveedor,
+        stock,
+        precio_unitario
+      FROM Consumibles
+      ORDER BY nombre ASC
+    `);
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error('❌ Error al obtener consumibles:', error);
+    res.status(500).json({ message: 'Error al obtener consumibles' });
+  }
+});
+
+app.get('/getAllProveedores', async (req, res) => {
+  try {
+    const request = new sql.Request();
+    const result = await request.query(`
+      SELECT 
+        nombre,
+        telefono,
+        correo,
+        direccion,
+        rfc
+      FROM Proveedores
+      ORDER BY nombre ASC
+    `);
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error('❌ Error al obtener proveedores:', error);
+    res.status(500).json({ message: 'Error al obtener proveedores' });
+  }
+});
+
 
 
 //Muerte Mentalconst fs = require('fs');

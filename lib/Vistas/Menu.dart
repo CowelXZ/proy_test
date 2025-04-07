@@ -1,7 +1,12 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:proy_test/Vistas/A%C3%B1adirFunciones.dart';
+import 'package:proy_test/Vistas/Consumibles.dart';
 import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/ListaIntermedio.dart';
+import 'package:proy_test/Vistas/ListaProductos.dart';
+import 'package:proy_test/Vistas/Proveedores.dart';
+import 'package:proy_test/Vistas/Recetas.dart';
 import 'package:proy_test/Vistas/RegistroCombos.dart';
 import 'package:proy_test/Vistas/RegistroConsumibles.dart';
 import 'package:proy_test/Vistas/RegistroIntermedios.dart';
@@ -183,7 +188,7 @@ class _MenuState extends State<Menu> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        const RegistroProveedoresView()),
+                                        const Proveedores()),
                               );
                             },
                           ),
@@ -195,7 +200,7 @@ class _MenuState extends State<Menu> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        const Registroconsumibles()),
+                                        const Consumibles()),
                               );
                             },
                           ),
@@ -219,7 +224,7 @@ class _MenuState extends State<Menu> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        const Registroproductos()),
+                                        const ListaProductos()),
                               );
                             },
                           ),
@@ -232,6 +237,18 @@ class _MenuState extends State<Menu> {
                                 MaterialPageRoute(
                                     builder: (context) =>
                                         const Registrocombos()),
+                              );
+                            },
+                          ),
+                          _buildSubmenuButton(
+                            icon: Icons.all_inclusive,
+                            label: 'Nuevos',
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const Recetas()),
                               );
                             },
                           ),

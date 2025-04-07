@@ -37,7 +37,7 @@ class _ListaIntermediosState extends State<ListaIntermedios> {
       backgroundColor: const Color(0xff01021E),
       appBar: AppBar(
         title: const Text('Intermedios Registrados'),
-        backgroundColor: const Color(0xff022044),
+        backgroundColor: const Color.fromARGB(255, 2, 106, 233),
       ),
       body: FutureBuilder<List<Intermedio>>(
         future: _intermedios,
