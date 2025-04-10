@@ -661,3 +661,48 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
+
+
+app.post('/addReceta', async (req, res) => {
+  const { nombre, porcion, unidad, consumibles } = req.body;
+
+  if (!nombre || !porcion || !unidad || !consumibles || !Array.isArray(consumibles)) {
+    return res.status(400).json({ mensaje: 'Datos incompletos o incorrectos' });
+  }
+
+  const transaction = new sql.Transaction();
+
+  try {
+    await transaction.begin();
+
+    const requestReceta = new sql.Request(transaction);
+    requestReceta.input('nombre', sql.NVarChar, nombre);
+    requestReceta.input('porcion', sql.Float, porcion);
+    requestReceta.input('unidad', sql.NVarChar, unidad);
+
+    const resultReceta = await requestReceta.query(
+      'INSERT INTO Recetas (nombre, porcion, unidad) OUTPUT INSERTED.id VALUES (@nombre, @porcion, @unidad)'
+    );
+
+    const recetaId = resultReceta.recordset[0].id;
+
+    for (const consumible of consumibles) {
+      const requestConsumible = new sql.Request(transaction);
+      requestConsumible.input('receta_id', sql.Int, recetaId);
+      requestConsumible.input('consumible_id', sql.Int, consumible.id);
+      requestConsumible.input('cantidad_usada', sql.Float, consumible.cantidad);
+
+      await requestConsumible.query(
+        'INSERT INTO Recetas_Consumibles (receta_id, consumible_id, cantidad_usada) VALUES (@receta_id, @consumible_id, @cantidad_usada)'
+      );
+    }
+
+    await transaction.commit();
+    res.status(201).json({ mensaje: 'Receta creada con éxito' });
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Error al crear la receta:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor', error });
+  }
+});
+
