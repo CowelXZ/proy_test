@@ -70,6 +70,21 @@ class ProveedorController {
     }
   }
 
+  Future<bool> eliminarProveedor(String nombre) async {
+    final url = Uri.parse('http://localhost:3000/deleteProveedor/$nombre');
+    try {
+      final response = await http.delete(url);
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      print('❌ Error de conexión: $error');
+      return false;
+    }
+  }
+
   List<Proveedor> filtrar(List<Proveedor> lista, String query) {
     return lista
         .where((p) => p.nombre.toLowerCase().contains(query.toLowerCase()))

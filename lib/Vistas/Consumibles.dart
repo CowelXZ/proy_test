@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'dart:convert';
-
+import 'package:http/http.dart' as http;
 import 'package:proy_test/Vistas/Menu.dart';
 import 'package:proy_test/Vistas/RegistroConsumibles.dart';
 
@@ -17,30 +16,79 @@ class Consumibles extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: ListaUsuarios(),
+        body: ListaConsumibles(),
       ),
     );
   }
 }
 
-class ListaUsuarios extends StatefulWidget {
-  const ListaUsuarios({super.key});
+class ListaConsumibles extends StatefulWidget {
+  const ListaConsumibles({super.key});
 
   @override
-  _ListaUsuariosState createState() => _ListaUsuariosState();
+  _ListaConsumiblesState createState() => _ListaConsumiblesState();
 }
 
-class _ListaUsuariosState extends State<ListaUsuarios> {
+class _ListaConsumiblesState extends State<ListaConsumibles> {
   final TextEditingController buscadorController = TextEditingController();
-  List<dynamic> usuarios = [];
-  List<dynamic> usuariosFiltrados = [];
-  String dropdownValue = 'FEMSA';
-  // String dropdownValue = 'Taquilla'; (Cambiar una vez corregida la base de datos)
+  List<dynamic> consumibles = [];
+  List<dynamic> consumiblesFiltrados = [];
+  List<String> proveedores = ['Todos'];
+  String proveedorSeleccionado = 'Todos';
 
   @override
   void initState() {
     super.initState();
+    obtenerConsumibles();
+    obtenerProveedores();
+    buscadorController.addListener(_filtrarConsumibles);
   }
+
+  Future<void> obtenerConsumibles() async {
+    final response =
+        await http.get(Uri.parse('http://localhost:3000/getAllConsumibles'));
+    if (response.statusCode == 200) {
+      setState(() {
+        consumibles = json.decode(response.body);
+        consumiblesFiltrados = consumibles;
+      });
+    }
+  }
+
+  Future<void> obtenerProveedores() async {
+    final response =
+        await http.get(Uri.parse('http://localhost:3000/getProveedores'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      setState(() {
+        proveedores.addAll(data.map<String>((e) => e['nombre'].toString()));
+      });
+    }
+  }
+
+  void _filtrarConsumibles() {
+    String query = buscadorController.text.toLowerCase();
+    setState(() {
+      consumiblesFiltrados = consumibles.where((item) {
+        final nombre = item['nombre'].toString().toLowerCase();
+        final proveedor = item['proveedor'].toString();
+        final coincideBusqueda = nombre.contains(query);
+        final coincideProveedor = proveedorSeleccionado == 'Todos' ||
+            proveedor == proveedorSeleccionado;
+        return coincideBusqueda && coincideProveedor;
+      }).toList();
+    });
+  }
+
+  void _filtrarPorProveedor(String? nuevoProveedor) {
+    if (nuevoProveedor != null) {
+      setState(() {
+        proveedorSeleccionado = nuevoProveedor;
+        _filtrarConsumibles();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +107,6 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  //cumpleaños
                   Row(
                     children: [
                       IconButton(
@@ -76,33 +123,28 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                       const Text(
                         'Consumibles',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.4,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: TextField(
-                        controller: buscadorController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Buscar consumible...',
-                          hintStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon:
-                              const Icon(Icons.search, color: Colors.white),
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.2),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
-                          ),
+                    child: TextField(
+                      controller: buscadorController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Buscar consumible...',
+                        hintStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon:
+                            const Icon(Icons.search, color: Colors.white),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.2),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
                         ),
-                        onChanged: (String value) {}, // Implementar la búsqueda
                       ),
                     ),
                   ),
@@ -110,31 +152,18 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                     children: [
                       const Text(
                         'Filtrar por Proveedor:',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 15),
                       ),
                       const SizedBox(width: 10),
                       DropdownButton<String>(
                         dropdownColor: const Color(0xFF022044),
-                        value: dropdownValue,
+                        value: proveedorSeleccionado,
                         icon: const Icon(Icons.arrow_drop_down,
                             color: Colors.white),
-                        iconSize: 24,
-                        elevation: 16,
                         style: const TextStyle(color: Colors.white),
                         underline: Container(height: 2, color: Colors.white),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              dropdownValue = newValue;
-                            });
-                          }
-                        },
-                        items: ['FEMSA', 'SABRITAS', 'DEL VALLE']
-                            // (Nuevos items a agregar una vez corregida la base de datos)
-                            .map<DropdownMenuItem<String>>((String value) {
+                        onChanged: _filtrarPorProveedor,
+                        items: proveedores.map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
@@ -148,10 +177,8 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                     backgroundColor: const Color(0xFF0665A4),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(100),
-                      child: Image.asset(
-                        'images/PICNITO LOGO.jpeg',
-                        fit: BoxFit.contain,
-                      ),
+                      child: Image.asset('images/PICNITO LOGO.jpeg',
+                          fit: BoxFit.contain),
                     ),
                   ),
                 ],
@@ -172,32 +199,64 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                     DataColumn(label: Text('PRECIO UNITARIO')),
                     DataColumn(label: Text('OPCIONES')),
                   ],
-                  rows: <DataRow>[
-                    DataRow(
-                      cells: <DataCell>[
-                        DataCell(Text('MAIZ PALOMERO')),
-                        DataCell(Text('MAIZ EL DORADO')),
-                        DataCell(Text('100')),
-                        DataCell(Text('50')),
+                  rows: consumiblesFiltrados.map<DataRow>((consumible) {
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(consumible['nombre'] ?? '')),
+                        DataCell(Text(consumible['proveedor'] ?? '')),
+                        DataCell(Text(consumible['stock'].toString())),
                         DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.white),
-                                onPressed: () {},
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete,
-                                    color: Colors.white),
-                                onPressed: () {},
-                              ),
-                            ],
+                            Text(consumible['precio_unitario'].toString())),
+                        DataCell(
+                          IconButton(
+                            icon: const Icon(Icons.delete,
+                                color: Colors.redAccent),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text("¿Eliminar consumible?"),
+                                  content: Text(
+                                      "Estás por eliminar '${consumible['nombre']}'"),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop(false),
+                                        child: const Text("Cancelar")),
+                                    TextButton(
+                                        onPressed: () => Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop(true),
+                                        child: const Text("Eliminar")),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                final response = await http.delete(
+                                  Uri.parse(
+                                      'http://localhost:3000/deleteConsumible/${Uri.encodeComponent(consumible['nombre'])}'),
+                                );
+                                if (response.statusCode == 200) {
+                                  setState(() {
+                                    consumibles.removeWhere((c) =>
+                                        c['nombre'] == consumible['nombre']);
+                                    _filtrarConsumibles();
+                                  });
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('❌ No se pudo eliminar')),
+                                  );
+                                }
+                              }
+                            },
                           ),
                         ),
                       ],
-                    ),
-                  ],
+                    );
+                  }).toList(),
                 ),
               ),
             ),
@@ -207,11 +266,10 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                 alignment: Alignment.bottomRight,
                 child: ElevatedButton(
                   onPressed: () {
-                     Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const Registroconsumibles(),
-                      ),
+                          builder: (context) => const Registroconsumibles()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -222,8 +280,7 @@ class _ListaUsuariosState extends State<ListaUsuarios> {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.person_add_alt_1_sharp,
-                          color: Color(0xffF5F5F5), size: 20),
+                      Icon(Icons.add, color: Color(0xffF5F5F5), size: 20),
                       SizedBox(width: 8),
                       Text('Nuevo Consumible',
                           style: TextStyle(

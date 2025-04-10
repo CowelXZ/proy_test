@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 
 void main() {
   runApp(const Extras());
@@ -70,7 +71,10 @@ class _ListaExtrasState extends State<ListaExtras> {
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
                         onPressed: () {
-                          // Acción para regresar
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const Menu()));
                         },
                       ),
                       const SizedBox(width: 10),

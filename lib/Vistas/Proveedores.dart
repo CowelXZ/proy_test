@@ -44,8 +44,48 @@ class _ListaProveedoresState extends State<ListaProveedores> {
     cargarProveedores();
   }
 
+  Future<void> eliminarProveedor(String nombre) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Eliminar proveedor?'),
+        content: const Text('Esta acción no se puede deshacer. ¿Estás seguro?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(216, 231, 54, 42)),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final res = await proveedorController.eliminarProveedor(nombre);
+      if (res) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('✅ Proveedor eliminado con éxito'),
+              backgroundColor: Colors.green),
+        );
+        cargarProveedores(); // Actualiza la lista
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('❌ No se pudo eliminar el proveedor'),
+              backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> cargarProveedores() async {
-    proveedores = (await proveedorController.fetchProveedores()).cast<Proveedor>();
+    proveedores =
+        (await proveedorController.fetchProveedores()).cast<Proveedor>();
     setState(() {
       proveedoresFiltrados = proveedores;
     });
@@ -166,7 +206,7 @@ class _ListaProveedoresState extends State<ListaProveedores> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.white),
-                            onPressed: () {},
+                            onPressed: () => eliminarProveedor(p.nombre),
                           ),
                         ],
                       )),

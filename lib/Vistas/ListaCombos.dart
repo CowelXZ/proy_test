@@ -1,5 +1,7 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:proy_test/Vistas/Menu.dart';
+import 'package:proy_test/Vistas/RegistroCombos.dart';
 
 void main() {
   runApp(const ListaCombos());
@@ -72,7 +74,8 @@ class _ListaState extends State<Lista> {
                       children: [
                         IconButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder:
+                             (context) => const Menu()));
                           },
                           icon: const Icon(Icons.arrow_back,
                               color: Color.fromARGB(255, 255, 255, 255),
@@ -163,8 +166,8 @@ class _ListaState extends State<Lista> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        
-                      },
+                        Navigator.pushReplacement(context, MaterialPageRoute(
+                            builder: (context) => const Registrocombos()));                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xff14AE5C),
                         padding: const EdgeInsets.symmetric(

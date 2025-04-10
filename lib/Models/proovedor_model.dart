@@ -23,5 +23,14 @@ class Proveedor {
     };
   }
 
-  static fromJson(p) {}
+  static Proveedor fromJson(Map<String, dynamic> json) {
+  return Proveedor(
+    nombre: json['nombre'],
+    correo: json['correo'],
+    telefono: json['telefono'],
+    direccion: json['direccion'],
+    rfc: json['rfc'],
+  );
+}
+
 }

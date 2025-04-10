@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:proy_test/Vistas/ListaIntermedio.dart';
 import 'package:proy_test/Vistas/Menu.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -23,6 +24,32 @@ class Registrointermedios extends StatelessWidget {
       home: Scaffold(
         body: formulario(),
       ),
+    );
+  }
+}
+
+class Consumible {
+  final int id;
+  final String nombre;
+  final String unidad;
+  final double precioUnitario;
+  final int stock;
+
+  Consumible({
+    required this.id,
+    required this.nombre,
+    required this.unidad,
+    required this.precioUnitario,
+    required this.stock,
+  });
+
+  factory Consumible.fromJson(Map<String, dynamic> json) {
+    return Consumible(
+      id: json['id'],
+      nombre: json['nombre'],
+      unidad: json['unidad'],
+      precioUnitario: (json['precio_unitario'] as num).toDouble(),
+      stock: json['stock'],
     );
   }
 }
@@ -77,7 +104,6 @@ class Intermedio {
   }
 }
 
-
 class formulario extends StatefulWidget {
   const formulario({super.key});
 
@@ -93,12 +119,32 @@ class _formularioState extends State<formulario> {
 
   File? _imagen;
   String dropdownValue = 'U';
+  String? _imagenUrl;
 
   List<Consumible> _consumiblesDisponibles = [];
 
+  void _calcularCostoTotal() {
+    double total = 0.0;
+
+    _consumiblesSeleccionados.forEach((nombre, controller) {
+      final cantidad = double.tryParse(controller.text) ?? 0.0;
+      final consumible = _consumiblesDisponibles.firstWhere(
+        (c) => c.nombre == nombre,
+        orElse: () => Consumible(
+            id: 0, nombre: '', unidad: '', precioUnitario: 0.0, stock: 0),
+      );
+      total += cantidad * consumible.precioUnitario;
+    });
+
+    setState(() {
+      costoController.text = total.toStringAsFixed(2);
+    });
+  }
+
   Future<void> _fetchConsumibles() async {
     try {
-      final response = await http.get(Uri.parse('URL_DE_TU_API/consumibles'));
+      final response =
+          await http.get(Uri.parse('http://localhost:3000/getAllConsumibles'));
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
@@ -109,10 +155,11 @@ class _formularioState extends State<formulario> {
         // Manejo de errores
       }
     } catch (e) {
-      // Manejo de excepciones
+      // Manejo de unidad
     }
   }
 
+//controller
   @override
   void initState() {
     super.initState();
@@ -127,10 +174,32 @@ class _formularioState extends State<formulario> {
     final ImagePicker picker = ImagePicker();
     final XFile? imagenSeleccionada =
         await picker.pickImage(source: ImageSource.gallery);
-    if (imagenSeleccionada != null) {
+    if (imagenSeleccionada == null) return;
+
+    setState(() {
+      _imagen = File(imagenSeleccionada.path);
+    });
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://localhost:3000/uploadImage'),
+    );
+
+    request.files
+        .add(await http.MultipartFile.fromPath('poster', _imagen!.path));
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responseBody = await response.stream.bytesToString();
+      final imageUrl = jsonDecode(responseBody)['imageUrl'];
+
       setState(() {
-        _imagen = File(imagenSeleccionada.path);
+        _imagenUrl = imageUrl;
       });
+
+      print("✅ Imagen subida: $_imagenUrl");
+    } else {
+      print("❌ Error al subir imagen: ${response.statusCode}");
     }
   }
 
@@ -140,7 +209,6 @@ class _formularioState extends State<formulario> {
       builder: (BuildContext context) {
         return MultiSelectDialog(
           items: _consumiblesDisponibles.map((c) => c.nombre).toList(),
-
           initialSelectedItems: _consumiblesSeleccionados.keys.toList(),
           titulo: 'Seleccione los consumibles a usar',
         );
@@ -149,21 +217,35 @@ class _formularioState extends State<formulario> {
 
     if (seleccionados != null) {
       setState(() {
-        _consumiblesSeleccionados.clear();
+        final nuevosSeleccionados = <String, TextEditingController>{};
+
         for (var consumible in seleccionados) {
-          _consumiblesSeleccionados[consumible] = TextEditingController();
+          if (_consumiblesSeleccionados.containsKey(consumible)) {
+            nuevosSeleccionados[consumible] =
+                _consumiblesSeleccionados[consumible]!;
+          } else {
+            nuevosSeleccionados[consumible] = TextEditingController();
+          }
         }
+
+        _consumiblesSeleccionados
+          ..clear()
+          ..addAll(nuevosSeleccionados);
       });
+
+      _calcularCostoTotal(); // Opcional si quieres recalcular al cerrar selección
     }
   }
 
-  void _guardarIntermedio() {
+  void _guardarIntermedio() async {
     if (nombreController.text.isEmpty ||
         stockController.text.isEmpty ||
         costoController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('❌ Todos los campos deben estar completos')),
+          content: Text('❌ Todos los campos deben estar completos'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -172,16 +254,55 @@ class _formularioState extends State<formulario> {
     final double? costo = double.tryParse(costoController.text);
     if (stock == null || costo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ Valores numéricos inválidos')),
+        const SnackBar(
+          content: Text('❌ Valores numéricos inválidos'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
-    // Aquí puedes hacer tu POST al backend con todos los datos
+    final Map<String, dynamic> body = {
+      'nombre': nombreController.text,
+      'imagen': _imagenUrl ?? '',
+      'cantidad_producida': stock,
+      'unidad': dropdownValue,
+      'costo_total_estimado': costo,
+      'consumibles_usados': _consumiblesSeleccionados.entries.map((e) {
+        return {
+          'nombre': e.key,
+          'cantidad_usada': double.tryParse(e.value.text) ?? 0.0,
+        };
+      }).toList(),
+    };
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✅ Intermedio guardado correctamente')),
+    final response = await http.post(
+      Uri.parse('http://localhost:3000/addIntermedio'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
     );
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Intermedio guardado correctamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Future.delayed(const Duration(seconds: 3), () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ListaIntermedios()),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Error al guardar intermedio'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -233,6 +354,7 @@ class _formularioState extends State<formulario> {
                     children: [
                       Column(
                         children: [
+                          //_seleccionarImagen
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -244,7 +366,7 @@ class _formularioState extends State<formulario> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) => const Menu()),
+                                            builder: (context) => const ListaIntermedios()),
                                       );
                                     },
                                     icon: const Icon(Icons.arrow_back,
@@ -420,36 +542,56 @@ class _formularioState extends State<formulario> {
                                               trailing: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  Container(
-                                                    width: 50,
-                                                    height: 35,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          color: Colors.black),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              5),
-                                                    ),
+                                                  SizedBox(
+                                                    width: 70,
                                                     child: TextField(
                                                       controller: controller,
                                                       keyboardType:
                                                           TextInputType.number,
+                                                      onChanged: (_) =>
+                                                          setState(() {
+                                                        _calcularCostoTotal();
+                                                      }),
                                                       style: const TextStyle(
                                                           color: Colors.black),
                                                       decoration:
-                                                          const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
+                                                          InputDecoration(
                                                         contentPadding:
-                                                            EdgeInsets.only(
+                                                            const EdgeInsets
+                                                                .only(
                                                                 left: 10,
                                                                 bottom: 10),
+                                                        errorText: () {
+                                                          final cantidad =
+                                                              double.tryParse(
+                                                                      controller
+                                                                          .text) ??
+                                                                  0.0;
+                                                          final stock =
+                                                              _consumiblesDisponibles
+                                                                  .firstWhere((c) =>
+                                                                      c.nombre ==
+                                                                      consumible)
+                                                                  .stock;
+                                                          return cantidad >
+                                                                  stock
+                                                              ? 'NoDisp'
+                                                              : null;
+                                                        }(),
                                                       ),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 6),
-                                                  const Text("Unidad"),
+                                                  Text(
+                                                    _consumiblesDisponibles
+                                                        .firstWhere((c) =>
+                                                            c.nombre ==
+                                                            consumible)
+                                                        .unidad,
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
                                                   IconButton(
                                                     icon: const Icon(
                                                         Icons.delete,
@@ -507,6 +649,7 @@ class _formularioState extends State<formulario> {
                                             ),
                                           ),
                                         ),
+                                        //controller: controller
                                         const SizedBox(width: 10),
                                         Container(
                                           padding: EdgeInsets.only(left: 10),

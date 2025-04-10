@@ -2,7 +2,9 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:proy_test/Vistas/A%C3%B1adirFunciones.dart';
 import 'package:proy_test/Vistas/Consumibles.dart';
+import 'package:proy_test/Vistas/Extras.dart';
 import 'package:proy_test/Vistas/InicioSesion.dart';
+import 'package:proy_test/Vistas/ListaCombos.dart';
 import 'package:proy_test/Vistas/ListaIntermedio.dart';
 import 'package:proy_test/Vistas/ListaProductos.dart';
 import 'package:proy_test/Vistas/Proveedores.dart';
@@ -120,154 +122,222 @@ class _MenuState extends State<Menu> {
                   color: const Color(0xFF081C42),
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: Column(
-                  children: [
-                    Container(
-                      height: 100,
-                      margin: const EdgeInsets.only(top: 20),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: Image.asset(
-                          'images/PICNITO LOGO.jpeg',
-                          fit: BoxFit.cover,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 100,
+                        margin: const EdgeInsets.only(top: 20),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: Image.asset(
+                            'images/PICNITO LOGO.jpeg',
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSidebarButton(
-                      icon: Icons.bar_chart,
-                      label: 'Reportes',
-                      onPressed: () {},
-                    ),
-                    _buildSidebarButton(
-                      icon: Icons.people,
-                      label: 'Usuarios',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const Usuarios()),
-                        );
-                      },
-                    ),
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: Colors.white, width: 0.5),
-                        ),
+                      const SizedBox(height: 20),
+                      _buildSidebarButton(
+                        icon: Icons.bar_chart,
+                        label: 'Reportes',
+                        onPressed: () {},
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: ExpansionTile(
-                        tilePadding: const EdgeInsets.symmetric(horizontal: 0),
-                        title: const Row(
-                          children: [
-                            Icon(Icons.shopping_cart,
-                                color: Colors.white, size: 24),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: const Text(
-                                'Productos',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
+                      _buildSidebarButton(
+                        icon: Icons.people,
+                        label: 'Usuarios',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Usuarios()),
+                          );
+                        },
+                      ),
+                      Container(
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: Colors.white, width: 0.5),
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(horizontal: 0),
+                          title: const Row(
+                            children: [
+                              Icon(Icons.shopping_cart,
+                                  color: Colors.white, size: 24),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: const Text(
+                                  'Productos',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
                                 ),
+                              ),
+                            ],
+                          ),
+                          collapsedIconColor: Colors.white,
+                          iconColor: Colors.white,
+                          trailing: Icon(Icons.expand_more,
+                              color: Colors.white, size: 20),
+                          children: [
+                            SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  _buildSubmenuButton(
+                                    icon: Icons.local_shipping,
+                                    label: 'Proveedores',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const Proveedores()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: Icons.inventory,
+                                    label: 'Consumibles',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const Consumibles()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: EvaIcons.grid,
+                                    label: 'Intermedios',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ListaIntermedios()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: Icons.shopping_bag,
+                                    label: 'Vendibles',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const ListaProductos()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: Icons.all_inclusive,
+                                    label: 'Combos',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const Registrocombos()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: Icons.receipt_long,
+                                    label: 'Recetas',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const Recetas()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: EvaIcons.plusCircle,
+                                    label: 'Extras',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                Extras()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: EvaIcons.grid,
+                                    label: 'Lista Combos',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ListaCombos()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: EvaIcons.grid,
+                                    label: 'Intermedios',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                Registrointermedios()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: EvaIcons.grid,
+                                    label: 'Intermedios',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                Registrointermedios()),
+                                      );
+                                    },
+                                  ),
+                                  _buildSubmenuButton(
+                                    icon: EvaIcons.grid,
+                                    label: 'Intermedios',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                Registrointermedios()),
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                        collapsedIconColor: Colors.white,
-                        iconColor: Colors.white,
-                        trailing: Icon(Icons.expand_more,
-                            color: Colors.white, size: 20),
-                        children: [
-                          _buildSubmenuButton(
-                            icon: Icons.local_shipping,
-                            label: 'Proveedores',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const Proveedores()),
-                              );
-                            },
-                          ),
-                          _buildSubmenuButton(
-                            icon: Icons.inventory,
-                            label: 'Consumibles',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const Consumibles()),
-                              );
-                            },
-                          ),
-                          _buildSubmenuButton(
-                            icon: EvaIcons.grid,
-                            label: 'Intermedios',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        Registrointermedios()),
-                              );
-                            },
-                          ),
-                          _buildSubmenuButton(
-                            icon: Icons.shopping_bag,
-                            label: 'Vendibles',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ListaProductos()),
-                              );
-                            },
-                          ),
-                          _buildSubmenuButton(
-                            icon: Icons.all_inclusive,
-                            label: 'Combos',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const Registrocombos()),
-                              );
-                            },
-                          ),
-                          _buildSubmenuButton(
-                            icon: Icons.all_inclusive,
-                            label: 'Nuevos',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const Recetas()),
-                              );
-                            },
-                          ),
-                        ],
                       ),
-                    ),
-                    _buildSidebarButton(
-                      icon: Icons.movie,
-                      label: 'Funciones',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const AFunciones()),
-                        );
-                      },
-                      bordeBoton: false,
-                    ),
-                  ],
+                      _buildSidebarButton(
+                        icon: Icons.movie,
+                        label: 'Funciones',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const AFunciones()),
+                          );
+                        },
+                        bordeBoton: false,
+                      ),
+                    ],
+                  ),
                 ),
               ),
 

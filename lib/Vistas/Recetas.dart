@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proy_test/Vistas/Menu.dart';
 
 void main() {
   runApp(const Recetas());
@@ -24,6 +25,13 @@ class Ventana extends StatefulWidget {
   @override
   State<Ventana> createState() => _VentanaState();
 }
+class Consumible {
+  final int id;
+  final String nombre;
+
+  Consumible({required this.id, required this.nombre});
+}
+
 
 class _VentanaState extends State<Ventana> {
   TextEditingController nombreRecetaController = TextEditingController();
@@ -55,7 +63,11 @@ class _VentanaState extends State<Ventana> {
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
                         onPressed: () {
-                          // Acción para regresar
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Menu()),
+                          );
                         },
                       ),
                       const SizedBox(width: 10),

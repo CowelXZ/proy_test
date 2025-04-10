@@ -1,4 +1,4 @@
-class Proveedor {
+/*class Proveedor {
   final String nombre;
   final String telefono;
   final String correo;
@@ -23,3 +23,4 @@ class Proveedor {
     );
   }
 }
+*/

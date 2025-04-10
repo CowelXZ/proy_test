@@ -7,14 +7,9 @@ const fs = require('fs'); // ✅ Importar módulo para manejar archivos
 
 app.use(express.json()); // Middleware para analizar JSON
 
-// Definición de rutas...
-
+// Definición de rutas.
 const PORT = 3000;
 app.use('/uploads', express.static('uploads'));
-
-
-//WAAAAA
-
 app.use(express.json());
 
 app.post('/login', async (req, res) => {
@@ -23,7 +18,6 @@ app.post('/login', async (req, res) => {
   if (!usuario || !contrasena) {
     return res.status(400).json({ message: 'Usuario y contraseña son requeridos' });
   }
-  //add
   try {
     const pool = await sql.connect(config);
     const result = await pool.request()
@@ -410,6 +404,22 @@ app.get('/getConsumibles', async (req, res) => {
   }
 });
 
+app.delete('/deleteConsumible/:nombre', async (req, res) => {
+  try {
+    const nombre = req.params.nombre;
+    const request = new sql.Request();
+    request.input('nombre', sql.NVarChar, nombre);
+    const result = await request.query('DELETE FROM Consumibles WHERE nombre = @nombre');
+    if (result.rowsAffected[0] > 0) {
+      res.status(200).json({ message: 'Consumible eliminado con éxito' });
+    } else {
+      res.status(404).json({ message: 'Consumible no encontrado' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar consumible:', error);
+    res.status(500).json({ message: 'Error al eliminar consumible' });
+  }
+});
 
 
 
@@ -424,6 +434,26 @@ app.get('/getProveedores', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener proveedores' });
   }
 });
+
+app.delete('/deleteProveedor/:nombre', async (req, res) => {
+  const { nombre } = req.params;
+  try {
+    const request = new sql.Request();
+    request.input('nombre', sql.NVarChar, nombre);
+    const result = await request.query('DELETE FROM Proveedores WHERE nombre = @nombre');
+
+    if (result.rowsAffected[0] > 0) {
+      res.status(200).json({ mensaje: 'Proveedor eliminado con éxito' });
+    } else {
+      res.status(404).json({ mensaje: 'Proveedor no encontrado' });
+    }
+  } catch (error) {
+    console.error('❌ Error al eliminar proveedor:', error);
+    res.status(500).json({ mensaje: 'Error al eliminar el proveedor', error });
+  }
+});
+
+
 
 app.post('/addIntermedio', async (req, res) => {
   try {
@@ -449,17 +479,29 @@ app.post('/addIntermedio', async (req, res) => {
 
     const intermedioId = result.recordset[0].id;
 
-    // Insertar consumibles usados
     for (const c of consumibles_usados) {
-      const reqC = new sql.Request();
-      reqC.input('intermedio_id', sql.Int, intermedioId);
-      reqC.input('nombre', sql.NVarChar, c.nombre);
-      reqC.input('cantidad_usada', sql.Float, c.cantidad_usada);
-      await reqC.query(`
+      const reqInsert = new sql.Request();
+      reqInsert.input('intermedio_id', sql.Int, intermedioId);
+      reqInsert.input('nombre', sql.NVarChar, c.nombre);
+      reqInsert.input('cantidad_usada', sql.Float, c.cantidad_usada);
+      await reqInsert.query(`
         INSERT INTO Intermedios_Consumibles (intermedio_id, nombre, cantidad_usada)
         VALUES (@intermedio_id, @nombre, @cantidad_usada)
       `);
+
+      const reqUpdate = new sql.Request();
+      reqUpdate.input('nombre', sql.NVarChar, c.nombre);
+      reqUpdate.input('cantidad_usada', sql.Float, c.cantidad_usada);
+      await reqUpdate.query(`
+        UPDATE Consumibles
+        SET stock = stock - @cantidad_usada
+        WHERE nombre = @nombre
+      `);
     }
+
+
+
+
 
     res.status(201).json({ message: '✅ Intermedio guardado exitosamente' });
   } catch (error) {
@@ -503,14 +545,46 @@ app.get('/getIntermedios', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener intermedios' });
   }
 });
+
+app.delete('/deleteIntermedio/:id', async (req, res) => {
+  const intermedioId = parseInt(req.params.id, 10);
+
+  if (isNaN(intermedioId)) {
+    return res.status(400).json({ message: 'ID de intermedio inválido' });
+  }
+
+  try {
+    const request = new sql.Request();
+    request.input('id', sql.Int, intermedioId);
+
+    // Primero eliminar los consumibles relacionados
+    await request.query('DELETE FROM Intermedios_Consumibles WHERE intermedio_id = @id');
+    
+    // Luego eliminar el intermedio
+    const result = await request.query('DELETE FROM Intermedios WHERE id = @id');
+
+    if (result.rowsAffected[0] > 0) {
+      res.status(200).json({ message: '✅ Intermedio eliminado con éxito' });
+    } else {
+      res.status(404).json({ message: 'Intermedio no encontrado' });
+    }
+  } catch (error) {
+    console.error('❌ Error al eliminar intermedio:', error);
+    res.status(500).json({ message: 'Error al eliminar intermedio' });
+  }
+});
+
+
 app.get('/getAllConsumibles', async (req, res) => {
   try {
     const request = new sql.Request();
     const result = await request.query(`
       SELECT 
+        id,
         nombre,
         proveedor,
         stock,
+        unidad,
         precio_unitario
       FROM Consumibles
       ORDER BY nombre ASC
@@ -521,6 +595,7 @@ app.get('/getAllConsumibles', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener consumibles' });
   }
 });
+
 
 app.get('/getAllProveedores', async (req, res) => {
   try {
