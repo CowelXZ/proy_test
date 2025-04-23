@@ -404,6 +404,18 @@ app.get('/getConsumibles', async (req, res) => {
   }
 });
 
+app.get('/getConsumiblesParaReceta', async (req, res) => {
+  try {
+    const request = new sql.Request();
+    const result = await request.query('SELECT id, nombre, unidad FROM Consumibles');
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error('Error al obtener consumibles:', error);
+    res.status(500).json({ message: 'Error al obtener consumibles' });
+  }
+});
+
+
 app.delete('/deleteConsumible/:nombre', async (req, res) => {
   try {
     const nombre = req.params.nombre;
