@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:proy_test/Vistas/A%C3%B1adirFunciones.dart';
-import 'package:proy_test/Vistas/Extras.dart';
-import 'package:proy_test/Vistas/Funciones.dart';
-import 'package:proy_test/Vistas/InicioSesion.dart';
-import 'package:proy_test/Vistas/Menu.dart';
-import 'package:proy_test/Vistas/Peliculas.dart';
-import 'package:proy_test/Vistas/RegistroCombos.dart';
-import 'package:proy_test/Vistas/RegistroConsumibles.dart';
-import 'package:proy_test/Vistas/RegistroIntermedios.dart';
-import 'package:proy_test/Vistas/RegistroProductos.dart';
-import 'package:proy_test/Vistas/RegistroProovedores.dart';
-import 'package:proy_test/Vistas/Usuarios.dart';
-import 'package:proy_test/Vistas/RegistrarPeliculas.dart';
+import 'package:proy_test/Vistas/Administracion/A%C3%B1adirFunciones.dart';
+import 'package:proy_test/Vistas/Administracion/Extras.dart';
+import 'package:proy_test/Vistas/Administracion/Funciones.dart';
+import 'package:proy_test/Vistas/Administracion/InicioSesion.dart';
+import 'package:proy_test/Vistas/Administracion/Menu.dart';
+import 'package:proy_test/Vistas/Administracion/Peliculas.dart';
+import 'package:proy_test/Vistas/Administracion/RegistroCombos.dart';
+import 'package:proy_test/Vistas/Administracion/RegistroConsumibles.dart';
+import 'package:proy_test/Vistas/Administracion/RegistroIntermedios.dart';
+import 'package:proy_test/Vistas/Administracion/RegistroProductos.dart';
+import 'package:proy_test/Vistas/Administracion/RegistroProovedores.dart';
+import 'package:proy_test/Vistas/Administracion/Usuarios.dart';
+import 'package:proy_test/Vistas/Administracion/RegistrarPeliculas.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -39,7 +39,7 @@ class HomeScreen extends StatelessWidget {
               _buildMenuButton(context, 'Administrar Usuarios', const Usuarios()),
               _buildMenuButton(context, 'Administrar Películas', const Peliculas()),
               _buildMenuButton(context, 'Registrar Película', const RPeliculas()),
-              _buildMenuButton(context, 'Registrar Funciones', const AFunciones()),
+             
               _buildMenuButton(context, 'Registrar Combos', const Registrocombos()),
               _buildMenuButton(context, 'Registrar Consumibles', const Registroconsumibles()),
               _buildMenuButton(context, 'Registro Intermedios', const Registrointermedios()),

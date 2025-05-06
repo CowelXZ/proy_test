@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:proy_test/Models/proovedor_model.dart';
-import 'package:proy_test/Vistas/Menu.dart';
+import 'package:proy_test/Vistas/Administracion/Menu.dart';
 import '../HomeScreen.dart';
 
 class ProveedorController {

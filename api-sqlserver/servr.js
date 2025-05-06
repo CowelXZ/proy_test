@@ -4,6 +4,9 @@ const { connectDB, sql, config } = require('./db');
 const bodyParser = require('body-parser');
 const fs = require('fs'); // ✅ Importar módulo para manejar archivos
 
+const multer = require('multer'); // ✅ Importar multer para manejar archivos subidos
+const uploads = multer({ dest: 'uploads/' }); // carpeta temporal para los posters
+
 
 app.use(express.json()); // Middleware para analizar JSON
 
@@ -168,48 +171,42 @@ app.delete('/deleteUser/:id', async (req, res) => {
   }
 });
 "TOP"
-app.post('/addMovie', async (req, res) => {
-  let { titulo, director, duracion, idiomas, subtitulos, genero, clasificacion, sinopsis, poster } = req.body;
+app.post('/addMovie', uploads.single('poster'), async (req, res) => {
+  let { titulo, director, duracion, idioma, subtitulos, genero, clasificacion, sinopsis } = req.body;
+  const posterFile = req.file;
 
-  console.log("📥 Datos recibidos:", { titulo, director, duracion, idiomas, genero, clasificacion, sinopsis });
-
-  if (!titulo || !director || !duracion || !idiomas || !genero || !clasificacion || !sinopsis) {
+  if (!titulo || !director || !duracion || !idioma || !genero || !clasificacion || !sinopsis) {
     return res.status(400).json({ message: "Todos los campos son obligatorios." });
-  }
-
-  console.log("⏳ Duración antes de validación:", duracion);
-
-  if (!duracion.trim()) {
-    console.log("⛔ Error: Duración vacía");
-    return res.status(400).json({ message: "Duración no puede estar vacía." });
   }
 
   const duracionValida = /^([01]?\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(duracion);
   if (!duracionValida) {
-    console.log("⛔ Error: Duración con formato incorrecto →", duracion);
     return res.status(400).json({ message: "Formato de duración inválido. Usa HH:mm:ss" });
   }
 
   try {
-    console.log("✅ Insertando duración en SQL:", duracion);
-
     const request = new sql.Request();
     request.input('titulo', sql.NVarChar, titulo);
     request.input('director', sql.NVarChar, director);
-    request.input('duracion', sql.NVarChar, duracion); // ✅ Enviar como string
-    request.input('idiomas', sql.NVarChar, idiomas);
+    request.input('duracion', sql.NVarChar, duracion);
+    request.input('idioma', sql.NVarChar, idioma);
     request.input('subtitulos', sql.Bit, subtitulos === "Si" ? 1 : 0);
     request.input('genero', sql.NVarChar, genero);
     request.input('clasificacion', sql.NVarChar, clasificacion);
     request.input('sinopsis', sql.NVarChar, sinopsis);
-    request.input('poster', sql.NVarChar, poster || null);
 
+    if (posterFile) {
+      const posterBuffer = fs.readFileSync(posterFile.path);
+      request.input('poster', sql.VarBinary(sql.MAX), posterBuffer);
+    } else {
+      request.input('poster', sql.VarBinary(sql.MAX), null);
+    }
+//recetas
     await request.query(`
-          INSERT INTO Peliculas (titulo, director, duracion, idiomas, subtitulos, genero, clasificacion, sinopsis, poster)
-          VALUES (@titulo, @director, @duracion, @idiomas, @subtitulos, @genero, @clasificacion, @sinopsis, @poster)
-      `);
+      INSERT INTO Pelicula (titulo, director, duracion, idioma, subtitulos, genero, clasificacion, sinopsis, poster)
+      VALUES (@titulo, @director, @duracion, @idioma, @subtitulos, @genero, @clasificacion, @sinopsis, @poster)
+    `);
 
-    console.log("✅ Película registrada con éxito:", titulo);
     res.status(201).json({ message: "Película registrada con éxito" });
   } catch (error) {
     console.error("❌ Error al registrar película:", error);
@@ -217,30 +214,47 @@ app.post('/addMovie', async (req, res) => {
   }
 });
 
+
 app.get('/getMovies', async (req, res) => {
   try {
     const request = new sql.Request();
-    const result = await request.query('SELECT * FROM Peliculas ORDER BY id DESC');
+    const result = await request.query('SELECT * FROM Pelicula ORDER BY ID_Pelicula DESC');
 
-    res.status(200).json(result.recordset);
+    // Mapea cada registro para añadir posterBase64
+    const peliculas = result.recordset.map(row => ({
+      ID_Pelicula:    row.ID_Pelicula,
+      Titulo:         row.Titulo,
+      Director:       row.Director,
+      Duracion:       row.Duracion,
+      Idioma:         row.Idioma,
+      Subtitulos:     row.Subtitulos,
+      Genero:         row.Genero,
+      Clasificacion:  row.Clasificacion,
+      Sinopsis:       row.Sinopsis,
+      posterBase64:   row.Poster ? row.Poster.toString('base64') : '',
+    }));
+
+    res.status(200).json(peliculas);
   } catch (error) {
     console.error("❌ Error al obtener películas:", error);
     res.status(500).json({ message: "Error al obtener películas" });
   }
 });
 
-app.delete('/deleteMovie/:id', async (req, res) => {
+
+
+app.delete('/deleteMovie/:ID_Pelicula', async (req, res) => {
   try {
-    const movieId = parseInt(req.params.id, 10);
+    const movieId = parseInt(req.params.ID_Pelicula, 10); // <--- ESTA ES LA CLAVE
 
     if (isNaN(movieId)) {
       return res.status(400).json({ message: 'ID de película inválido' });
     }
 
     const request = new sql.Request();
-    request.input('id', sql.Int, movieId);
+    request.input('ID_Pelicula', sql.Int, movieId);
 
-    const result = await request.query('DELETE FROM Peliculas WHERE id = @id');
+    const result = await request.query('DELETE FROM Pelicula WHERE ID_Pelicula = @ID_Pelicula');
 
     if (result.rowsAffected[0] > 0) {
       console.log(`✅ Película con ID ${movieId} eliminada`);
@@ -253,7 +267,9 @@ app.delete('/deleteMovie/:id', async (req, res) => {
     console.error('❌ Error al eliminar película:', error);
     res.status(500).json({ message: 'Error al eliminar película' });
   }
-}); app.post('/addFunction', async (req, res) => {
+});
+
+app.post('/addFunction', async (req, res) => {
   try {
     let { titulo, horario, fecha, sala, tipo_sala, idioma, poster } = req.body;
 
@@ -571,7 +587,7 @@ app.delete('/deleteIntermedio/:id', async (req, res) => {
 
     // Primero eliminar los consumibles relacionados
     await request.query('DELETE FROM Intermedios_Consumibles WHERE intermedio_id = @id');
-    
+
     // Luego eliminar el intermedio
     const result = await request.query('DELETE FROM Intermedios WHERE id = @id');
 
@@ -632,7 +648,7 @@ app.get('/getAllProveedores', async (req, res) => {
 
 
 //Muerte Mentalconst fs = require('fs');
-const multer = require('multer');
+
 const path = require('path');
 
 // 🔥 Verifica que la carpeta "uploads/" existe, si no, la crea
@@ -717,4 +733,356 @@ app.post('/addReceta', async (req, res) => {
     res.status(500).json({ mensaje: 'Error interno del servidor', error });
   }
 });
+///////////////////////////////////
+
+
+app.use('/images', express.static(path.join(__dirname, '../images')));
+//Peliculas
+app.get('/funciones', async (req, res) => {
+  const fecha = req.query.fecha; // e.g. 2025-04-26
+  if (!fecha) return res.status(400).send("Falta la fecha en el query string");
+
+  try {
+    await connectDB();
+    const result = await sql.query(`
+            SELECT 
+    P.id_Pelicula,
+    P.titulo,
+    P.genero,
+    P.clasificacion,
+    CONVERT(varchar(5), P.duracion, 108) AS duracion,
+    P.poster,
+    F.idioma,
+    CONVERT(varchar(5), F.horario, 108) AS horario,
+    CAST(F.sala AS VARCHAR) AS sala,
+    F.tipo_sala
+FROM Funciones F
+INNER JOIN Pelicula P ON F.id_pelicula = P.id_Pelicula
+WHERE F.fecha = '${fecha}'
+ORDER BY P.id_Pelicula, F.idioma, F.horario
+
+        `);
+    //Error al
+
+    const agrupado = {};
+
+    result.recordset.forEach(row => {
+      const id = row.id_Pelicula;
+
+      if (!agrupado[id]) {
+        agrupado[id] = {
+          titulo: row.titulo,
+          genero: row.genero,
+          clasificacion: row.clasificacion,
+          duracion: row.duracion,
+          poster: `/images/${row.poster}`,
+          funciones: {}
+        };
+      }
+
+
+      if (!agrupado[id].funciones[row.idioma]) {
+        agrupado[id].funciones[row.idioma] = [];
+      }
+
+      agrupado[id].funciones[row.idioma].push({
+        horario: row.horario,
+        sala: row.sala,
+        tipo_sala: (row.tipo_sala === null || row.tipo_sala === undefined) ? '2D' : row.tipo_sala
+      });
+    });
+
+
+    res.json(Object.values(agrupado));
+  } catch (error) {
+    console.error("❌ Error al consultar funciones:", error);
+    res.status(500).send(`Error al obtener funciones: ${error.message}`);
+  }
+
+});
+
+app.get('/tiposboletos', async (req, res) => {
+  const fecha = req.query.fecha;
+  const tipoSala = req.query.tipoSala;
+
+  if (!fecha || !tipoSala) {
+    return res.status(400).send("Falta fecha o tipoSala en el query string");
+  }
+
+  try {
+    await connectDB();
+    const result = await sql.query(`
+            SELECT 
+                id_boleto,
+                nombre,
+                CASE 
+                    WHEN fecha_especial IS NULL THEN 
+                        CASE WHEN '${tipoSala}' = '2D' THEN precio_2D ELSE precio_3D END
+                    WHEN fecha_especial = '${fecha}' THEN 
+                        CASE WHEN '${tipoSala}' = '2D' THEN precio_2D ELSE precio_3D END
+                    ELSE NULL
+                END AS precio
+            FROM TiposBoletos
+        `);
+
+    const boletos = result.recordset.filter(row => row.precio !== null);
+
+    res.json(boletos);
+  } catch (error) {
+    console.error("❌ Error al consultar tipos de boletos:", error);
+    res.status(500).send("Error al obtener tipos de boletos");
+  }
+});
+
+app.post('/addMiembro', async (req, res) => {
+  const { nombre, apellido, telefono, direccion, ine, tipo_membresia } = req.body;
+
+  try {
+    await connectDB();
+    await sql.query`
+        INSERT INTO Miembros (nombre, apellido, telefono, direccion, ine, tipo_membresia)
+        VALUES (${nombre}, ${apellido}, ${telefono}, ${direccion}, ${ine}, ${tipo_membresia})
+      `;
+    res.status(201).send('Miembro agregado exitosamente');
+  } catch (error) {
+    console.error('Error al agregar miembro:', error);
+    res.status(500).send('Error al agregar miembro');
+  }
+});
+
+app.get('/miembros', async (req, res) => {
+  try {
+    await connectDB();
+    const result = await sql.query(`
+            SELECT id_miembro, nombre, apellido, telefono, direccion, ine, tipo_membresia
+            FROM Miembros
+        `);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Error al obtener miembros:', error);
+    res.status(500).send('Error al obtener miembros');
+  }
+});
+
+
+app.delete('/miembros/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await connectDB();
+    await sql.query`
+        DELETE FROM Miembros WHERE id_miembro = ${id}
+      `;
+    res.status(200).send('Miembro eliminado exitosamente');
+  } catch (error) {
+    console.error('Error al eliminar miembro:', error);
+    res.status(500).send('Error al eliminar miembro');
+  }
+});
+
+
+app.put('/miembros/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nombre, apellido, telefono, direccion, ine, tipo_membresia } = req.body;
+
+  try {
+    await connectDB();
+    await sql.query`
+        UPDATE Miembros
+        SET
+          nombre = ${nombre},
+          apellido = ${apellido},
+          telefono = ${telefono},
+          direccion = ${direccion},
+          ine = ${ine},
+          tipo_membresia = ${tipo_membresia}
+        WHERE id_miembro = ${id}
+      `;
+    res.status(200).send('Miembro actualizado exitosamente');
+  } catch (error) {
+    console.error('Error al actualizar miembro:', error);
+    res.status(500).send('Error al actualizar miembro');
+  }
+});
+
+app.get('/miembroTelefono/:telefono', async (req, res) => {
+  const { telefono } = req.params;
+
+  try {
+    await connectDB();
+    const result = await sql.query`
+        SELECT id_miembro, nombre, tipo_membresia, cashback_acumulado
+        FROM Miembros
+        WHERE telefono = ${telefono}
+      `;
+
+    if (result.recordset.length > 0) {
+      res.json(result.recordset[0]);
+    } else {
+      res.status(404).send('Miembro no encontrado');
+    }
+  } catch (error) {
+    console.error('Error al buscar miembro:', error);
+    res.status(500).send('Error al buscar miembro');
+  }
+});
+
+
+app.post('/pago', async (req, res) => {
+  const {
+    id_miembro,
+    nombre_cliente,
+    monto_total,
+    monto_recibido,
+    cambio,
+    tipo_pago,
+    cashback_generado
+  } = req.body;
+
+  try {
+    await connectDB();
+    await sql.query`
+            INSERT INTO Pagos (id_miembro, nombre_cliente, monto_total, monto_recibido, cambio, tipo_pago, cashback_generado)
+            VALUES (${id_miembro}, ${nombre_cliente}, ${monto_total}, ${monto_recibido}, ${cambio}, ${tipo_pago}, ${cashback_generado})
+        `;
+
+    if (id_miembro && cashback_generado > 0) {
+      await sql.query`
+                UPDATE Miembros
+                SET cashback_acumulado = cashback_acumulado + ${cashback_generado}
+                WHERE id_miembro = ${id_miembro}
+            `;
+    }
+
+    res.status(201).send('Pago registrado exitosamente');
+  } catch (error) {
+    console.error('Error al registrar pago:', error);
+    res.status(500).send('Error al registrar pago');
+  }
+});
+
+app.get('/asientosOcupados', async (req, res) => {
+  const { fecha, horario, sala } = req.query;
+
+  try {
+    await connectDB();
+    const result = await sql.query`
+        SELECT asientos_ocupados
+        FROM Funciones
+        WHERE fecha = ${fecha} AND horario = ${horario} AND sala = ${sala}
+      `;
+
+    if (result.recordset.length > 0) {
+      res.json(result.recordset[0]);
+    } else {
+      res.status(404).send('No se encontraron asientos ocupados');
+    }
+  } catch (error) {
+    console.error('Error al obtener asientos ocupados:', error);
+    res.status(500).send('Error al obtener asientos ocupados');
+  }
+});
+
+
+app.put('/actualizarAsientosVendidos', async (req, res) => {
+  const { fecha, horario, sala, nuevos_asientos } = req.body;
+
+  try {
+    await connectDB();
+
+    const resultado = await sql.query`
+        SELECT asientos_ocupados
+        FROM Funciones
+        WHERE fecha = ${fecha} AND horario = ${horario} AND sala = ${sala}
+      `;
+
+    let asientosActuales = '';
+    if (resultado.recordset.length > 0) {
+      asientosActuales = resultado.recordset[0].asientos_ocupados || '';
+    }
+
+    let asientosCombinados = asientosActuales
+      ? asientosActuales + ',' + nuevos_asientos
+      : nuevos_asientos;
+
+    await sql.query`
+        UPDATE Funciones
+        SET asientos_ocupados = ${asientosCombinados}
+        WHERE fecha = ${fecha} AND horario = ${horario} AND sala = ${sala}
+      `;
+
+    res.status(200).send('Asientos actualizados exitosamente');
+  } catch (error) {
+    console.error('Error al actualizar asientos vendidos:', error);
+    res.status(500).send('Error al actualizar asientos vendidos');
+  }
+});
+
+app.post('/addProducto', async (req, res) => {
+  try {
+    const {
+      nombre,
+      tamano,
+      porcionCantidad,
+      porcionUnidad,
+      stock,
+      precio,
+      imagen
+    } = req.body;
+
+    // Validación básica de campos obligatorios
+    if (
+      !nombre ||
+      !stock ||
+      !precio
+    ) {
+      return res.status(400).json({ message: '🌟 nombre, stock y precio son obligatorios' });
+    }
+
+    const request = new sql.Request();
+    request.input('nombre', sql.NVarChar, nombre);
+    request.input('tamano', sql.NVarChar, tamano || null);
+    request.input('porcionCantidad', sql.Decimal, porcionCantidad || 0);
+    request.input('porcionUnidad', sql.NVarChar, porcionUnidad || null);
+    request.input('stock', sql.Int, stock);
+    request.input('precio', sql.Decimal, precio);
+    request.input('imagen', sql.NVarChar, imagen || null);
+
+    await request.query(`
+        INSERT INTO Productos
+          (nombre, tamano, porcionCantidad, porcionUnidad, stock, precio, imagen)
+        VALUES
+          (@nombre, @tamano, @porcionCantidad, @porcionUnidad, @stock, @precio, @imagen)
+      `);
+
+    res.status(201).json({ message: '✅ Producto agregado con éxito' });
+  } catch (error) {
+    console.error('❌ Error al agregar producto:', error);
+    res.status(500).json({ message: 'Error al agregar producto' });
+  }
+});
+
+// 👉 GET para traer todos los productos
+app.get('/getAllProductos', async (req, res) => {
+  try {
+    const request = new sql.Request();
+    const result = await request.query(`
+      SELECT 
+        idProducto,
+        nombre,
+        stock,
+        precio,
+        imagen
+      FROM dbo.Productos
+    `);
+    // result.recordset es un array de objetos con tus filas
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error('❌ Error al obtener productos:', error);
+    res
+      .status(500)
+      .json({ message: 'Error al obtener productos', error: error.message });
+  }
+});
+
 
