@@ -2,7 +2,7 @@ const sql = require('mssql');
 
 const dbConfig = {
     server: 'DESKTOP-FDUT0ET', // El nombre de tu servidor
-    database: 'CineDB2', // Nombre de tu base de datos
+    database: 'CineDB', // Nombre de tu base de datos
     options: {
         trustServerCertificate: true,
         encrypt: false

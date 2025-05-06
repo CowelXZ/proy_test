@@ -224,11 +224,9 @@ class _formularioState extends State<formulario> {
           const SnackBar(content: Text('✅ Producto guardado')),
         );
         Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                Menu()),
-                                      ); // o lo que quieras hacer luego
+          context,
+          MaterialPageRoute(builder: (context) => Menu()),
+        ); // o lo que quieras hacer luego
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: ${resp.statusCode}')),
@@ -564,9 +562,7 @@ class _formularioState extends State<formulario> {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => const Menu(
-                                            nombre: 'NombreX',
-                                            apellidos: 'ApellidoX')),
+                                        builder: (context) => const Menu()),
                                   );
                                 },
                                 icon: const Icon(Icons.arrow_back,
